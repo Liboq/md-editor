@@ -1,0 +1,119 @@
+{
+  "id": "zhihu-style",
+  "name": "知乎风格",
+  "description": "知乎文章风格主题",
+  "isBuiltIn": false,
+  "styles": {
+    "background": "#ffffff",
+    "text": "#1a1a1a",
+    "textSecondary": "#8590a6",
+    "h1": {
+      "color": "#1a1a1a",
+      "fontSize": "1.8em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1.4em",
+      "marginBottom": "0.8em"
+    },
+    "h2": {
+      "color": "#1a1a1a",
+      "fontSize": "1.5em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1.4em",
+      "marginBottom": "0.6em",
+      "borderBottom": "1px solid #ebebeb",
+      "paddingBottom": "0.4em"
+    },
+    "h3": {
+      "color": "#1a1a1a",
+      "fontSize": "1.25em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1.2em",
+      "marginBottom": "0.5em"
+    },
+    "h4": {
+      "color": "#1a1a1a",
+      "fontSize": "1.1em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "h5": {
+      "color": "#1a1a1a",
+      "fontSize": "1em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "h6": {
+      "color": "#8590a6",
+      "fontSize": "0.9em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "paragraph": {
+      "color": "#1a1a1a",
+      "fontSize": "16px",
+      "lineHeight": "1.8",
+      "marginBottom": "1.4em"
+    },
+    "link": {
+      "color": "#0084ff",
+      "textDecoration": "none"
+    },
+    "blockquote": {
+      "background": "#fafafa",
+      "borderLeft": "3px solid #0084ff",
+      "color": "#646464",
+      "padding": "14px 18px",
+      "margin": "1.2em 0",
+      "fontStyle": "normal"
+    },
+    "code": {
+      "background": "#f6f6f6",
+      "color": "#c7254e",
+      "padding": "2px 6px",
+      "borderRadius": "3px",
+      "fontFamily": "Menlo, Monaco, Consolas, monospace",
+      "fontSize": "0.9em"
+    },
+    "codeBlock": {
+      "background": "#1e1e1e",
+      "color": "#d4d4d4",
+      "padding": "18px 20px",
+      "borderRadius": "6px",
+      "fontFamily": "Menlo, Monaco, Consolas, monospace",
+      "fontSize": "0.9em",
+      "lineHeight": "1.5",
+      "overflow": "auto"
+    },
+    "list": {
+      "color": "#1a1a1a",
+      "marginLeft": "1.5em",
+      "marginBottom": "1.4em",
+      "lineHeight": "1.8"
+    },
+    "table": {
+      "borderColor": "#ebebeb",
+      "headerBackground": "#f6f6f6",
+      "headerColor": "#1a1a1a",
+      "cellPadding": "10px 14px",
+      "evenRowBackground": "#fafafa"
+    },
+    "image": {
+      "maxWidth": "100%",
+      "borderRadius": "4px",
+      "margin": "1.2em 0"
+    },
+    "hr": {
+      "border": "1px solid #ebebeb",
+      "margin": "2em 0"
+    }
+  }
+}

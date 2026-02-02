@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Markdown Editor Theme",
+  "description": "Markdown 编辑器主题配置 Schema",
+  "type": "object",
+  "required": ["id", "name", "styles"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "主题唯一标识符，使用小写字母和连字符",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "主题显示名称"
+    },
+    "description": {
+      "type": "string",
+      "description": "主题描述"
+    },
+    "isBuiltIn": {
+      "type": "boolean",
+      "description": "是否为内置主题（自定义主题应设为 false）",
+      "default": false
+    },
+    "styles": {
+      "type": "object",
+      "description": "主题样式配置",
+      "required": ["background", "text", "textSecondary", "h1", "h2", "h3", "h4", "h5", "h6", "paragraph", "link", "blockquote", "code", "codeBlock", "list", "table", "image", "hr"],
+      "properties": {
+        "background": {
+          "type": "string",
+          "description": "预览区背景色",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "text": {
+          "type": "string",
+          "description": "主文字颜色",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "textSecondary": {
+          "type": "string",
+          "description": "次要文字颜色",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "h1": { "$ref": "#/definitions/headingStyle" },
+        "h2": { "$ref": "#/definitions/headingStyle" },
+        "h3": { "$ref": "#/definitions/headingStyleSimple" },
+        "h4": { "$ref": "#/definitions/headingStyleSimple" },
+        "h5": { "$ref": "#/definitions/headingStyleSimple" },
+        "h6": { "$ref": "#/definitions/headingStyleSimple" },
+        "paragraph": { "$ref": "#/definitions/paragraphStyle" },
+        "link": { "$ref": "#/definitions/linkStyle" },
+        "blockquote": { "$ref": "#/definitions/blockquoteStyle" },
+        "code": { "$ref": "#/definitions/codeStyle" },
+        "codeBlock": { "$ref": "#/definitions/codeBlockStyle" },
+        "list": { "$ref": "#/definitions/listStyle" },
+        "table": { "$ref": "#/definitions/tableStyle" },
+        "image": { "$ref": "#/definitions/imageStyle" },
+        "hr": { "$ref": "#/definitions/hrStyle" }
+      }
+    }
+  },
+  "definitions": {
+    "headingStyle": {
+      "type": "object",
+      "description": "标题样式（支持底部边框）",
+      "required": ["color", "fontSize", "fontWeight", "lineHeight", "marginTop", "marginBottom"],
+      "properties": {
+        "color": { "type": "string", "description": "标题颜色" },
+        "fontSize": { "type": "string", "description": "字体大小，如 2em, 1.5em" },
+        "fontWeight": { "type": "string", "description": "字体粗细，如 600, bold" },
+        "lineHeight": { "type": "string", "description": "行高，如 1.3" },
+        "marginTop": { "type": "string", "description": "上边距，如 1.5em" },
+        "marginBottom": { "type": "string", "description": "下边距，如 0.5em" },
+        "borderBottom": { "type": "string", "description": "底部边框，如 1px solid #e5e5e5" },
+        "paddingBottom": { "type": "string", "description": "底部内边距，如 0.3em" }
+      }
+    },
+    "headingStyleSimple": {
+      "type": "object",
+      "description": "标题样式（简单版）",
+      "required": ["color", "fontSize", "fontWeight", "lineHeight", "marginTop", "marginBottom"],
+      "properties": {
+        "color": { "type": "string" },
+        "fontSize": { "type": "string" },
+        "fontWeight": { "type": "string" },
+        "lineHeight": { "type": "string" },
+        "marginTop": { "type": "string" },
+        "marginBottom": { "type": "string" }
+      }
+    },
+    "paragraphStyle": {
+      "type": "object",
+      "description": "段落样式",
+      "required": ["color", "fontSize", "lineHeight", "marginBottom"],
+      "properties": {
+        "color": { "type": "string", "description": "文字颜色" },
+        "fontSize": { "type": "string", "description": "字体大小，如 16px" },
+        "lineHeight": { "type": "string", "description": "行高，如 1.8" },
+        "marginBottom": { "type": "string", "description": "下边距，如 1em" }
+      }
+    },
+    "linkStyle": {
+      "type": "object",
+      "description": "链接样式",
+      "required": ["color", "textDecoration"],
+      "properties": {
+        "color": { "type": "string", "description": "链接颜色" },
+        "textDecoration": { "type": "string", "description": "文字装饰，如 none, underline" }
+      }
+    },
+    "blockquoteStyle": {
+      "type": "object",
+      "description": "引用块样式",
+      "required": ["background", "borderLeft", "color", "padding", "margin", "fontStyle"],
+      "properties": {
+        "background": { "type": "string", "description": "背景色" },
+        "borderLeft": { "type": "string", "description": "左边框，如 4px solid #ddd" },
+        "color": { "type": "string", "description": "文字颜色" },
+        "padding": { "type": "string", "description": "内边距，如 1em" },
+        "margin": { "type": "string", "description": "外边距，如 1em 0" },
+        "fontStyle": { "type": "string", "description": "字体样式，如 italic, normal" }
+      }
+    },
+    "codeStyle": {
+      "type": "object",
+      "description": "行内代码样式",
+      "required": ["background", "color", "padding", "borderRadius", "fontFamily", "fontSize"],
+      "properties": {
+        "background": { "type": "string", "description": "背景色" },
+        "color": { "type": "string", "description": "文字颜色" },
+        "padding": { "type": "string", "description": "内边距，如 2px 6px" },
+        "borderRadius": { "type": "string", "description": "圆角，如 3px" },
+        "fontFamily": { "type": "string", "description": "字体，如 Consolas, Monaco, monospace" },
+        "fontSize": { "type": "string", "description": "字体大小，如 0.9em" }
+      }
+    },
+    "codeBlockStyle": {
+      "type": "object",
+      "description": "代码块样式",
+      "required": ["background", "color", "padding", "borderRadius", "fontFamily", "fontSize", "lineHeight", "overflow"],
+      "properties": {
+        "background": { "type": "string", "description": "背景色" },
+        "color": { "type": "string", "description": "文字颜色" },
+        "padding": { "type": "string", "description": "内边距，如 1em" },
+        "borderRadius": { "type": "string", "description": "圆角，如 6px" },
+        "fontFamily": { "type": "string", "description": "字体" },
+        "fontSize": { "type": "string", "description": "字体大小" },
+        "lineHeight": { "type": "string", "description": "行高，如 1.5" },
+        "overflow": { "type": "string", "description": "溢出处理，如 auto, hidden" }
+      }
+    },
+    "listStyle": {
+      "type": "object",
+      "description": "列表样式",
+      "required": ["color", "marginLeft", "marginBottom", "lineHeight"],
+      "properties": {
+        "color": { "type": "string", "description": "文字颜色" },
+        "marginLeft": { "type": "string", "description": "左边距，如 1.5em" },
+        "marginBottom": { "type": "string", "description": "下边距，如 1em" },
+        "lineHeight": { "type": "string", "description": "行高，如 1.8" }
+      }
+    },
+    "tableStyle": {
+      "type": "object",
+      "description": "表格样式",
+      "required": ["borderColor", "headerBackground", "headerColor", "cellPadding"],
+      "properties": {
+        "borderColor": { "type": "string", "description": "边框颜色" },
+        "headerBackground": { "type": "string", "description": "表头背景色" },
+        "headerColor": { "type": "string", "description": "表头文字颜色" },
+        "cellPadding": { "type": "string", "description": "单元格内边距，如 8px 12px" },
+        "evenRowBackground": { "type": "string", "description": "偶数行背景色（可选）" }
+      }
+    },
+    "imageStyle": {
+      "type": "object",
+      "description": "图片样式",
+      "required": ["maxWidth", "borderRadius", "margin"],
+      "properties": {
+        "maxWidth": { "type": "string", "description": "最大宽度，如 100%" },
+        "borderRadius": { "type": "string", "description": "圆角，如 4px" },
+        "margin": { "type": "string", "description": "外边距，如 1em 0" }
+      }
+    },
+    "hrStyle": {
+      "type": "object",
+      "description": "分割线样式",
+      "required": ["border", "margin"],
+      "properties": {
+        "border": { "type": "string", "description": "边框样式，如 1px solid #e5e5e5" },
+        "margin": { "type": "string", "description": "外边距，如 2em 0" }
+      }
+    }
+  }
+}

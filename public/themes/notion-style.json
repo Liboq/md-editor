@@ -1,0 +1,117 @@
+{
+  "id": "notion-style",
+  "name": "Notion 风格",
+  "description": "简洁优雅的 Notion 风格主题",
+  "isBuiltIn": false,
+  "styles": {
+    "background": "#ffffff",
+    "text": "#37352f",
+    "textSecondary": "#9b9a97",
+    "h1": {
+      "color": "#37352f",
+      "fontSize": "1.875em",
+      "fontWeight": "700",
+      "lineHeight": "1.3",
+      "marginTop": "2em",
+      "marginBottom": "4px"
+    },
+    "h2": {
+      "color": "#37352f",
+      "fontSize": "1.5em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.4em",
+      "marginBottom": "1px"
+    },
+    "h3": {
+      "color": "#37352f",
+      "fontSize": "1.25em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1em",
+      "marginBottom": "1px"
+    },
+    "h4": {
+      "color": "#37352f",
+      "fontSize": "1em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1em",
+      "marginBottom": "1px"
+    },
+    "h5": {
+      "color": "#37352f",
+      "fontSize": "0.875em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1em",
+      "marginBottom": "1px"
+    },
+    "h6": {
+      "color": "#9b9a97",
+      "fontSize": "0.875em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1em",
+      "marginBottom": "1px"
+    },
+    "paragraph": {
+      "color": "#37352f",
+      "fontSize": "16px",
+      "lineHeight": "1.5",
+      "marginBottom": "0.5em"
+    },
+    "link": {
+      "color": "#37352f",
+      "textDecoration": "underline"
+    },
+    "blockquote": {
+      "background": "transparent",
+      "borderLeft": "3px solid #37352f",
+      "color": "#37352f",
+      "padding": "0.1em 0 0.1em 1em",
+      "margin": "0.5em 0",
+      "fontStyle": "normal"
+    },
+    "code": {
+      "background": "#f7f6f3",
+      "color": "#eb5757",
+      "padding": "0.2em 0.4em",
+      "borderRadius": "3px",
+      "fontFamily": "SFMono-Regular, Menlo, Consolas, monospace",
+      "fontSize": "85%"
+    },
+    "codeBlock": {
+      "background": "#f7f6f3",
+      "color": "#37352f",
+      "padding": "32px 16px 32px 32px",
+      "borderRadius": "3px",
+      "fontFamily": "SFMono-Regular, Menlo, Consolas, monospace",
+      "fontSize": "85%",
+      "lineHeight": "1.5",
+      "overflow": "auto"
+    },
+    "list": {
+      "color": "#37352f",
+      "marginLeft": "1.5em",
+      "marginBottom": "0.5em",
+      "lineHeight": "1.5"
+    },
+    "table": {
+      "borderColor": "#e9e9e7",
+      "headerBackground": "#f7f6f3",
+      "headerColor": "#37352f",
+      "cellPadding": "8px 10px",
+      "evenRowBackground": "transparent"
+    },
+    "image": {
+      "maxWidth": "100%",
+      "borderRadius": "0",
+      "margin": "0.5em 0"
+    },
+    "hr": {
+      "border": "1px solid #e9e9e7",
+      "margin": "1em 0"
+    }
+  }
+}
