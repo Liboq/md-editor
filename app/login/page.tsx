@@ -91,8 +91,9 @@ function LoginContent() {
       <div className="max-w-md w-full mx-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">
+            <img src="/logo.jpg" alt="轻语" className="w-16 h-16 mx-auto mb-4 rounded-lg" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Markdown 编辑器
+              轻语
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               支持实时预览和多主题的 Markdown 编辑器

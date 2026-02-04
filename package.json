@@ -1,6 +1,11 @@
 {
-  "name": "markdown-editor",
+  "name": "qingyu-md-editor",
   "version": "0.1.0",
+  "description": "轻语 - 一个支持实时预览和多主题的 Markdown 编辑器",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Liboq/md-editor"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",

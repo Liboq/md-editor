@@ -277,7 +277,7 @@ function EditorContent() {
               onClick={handleTitleClick}
               title={currentArticle ? '点击编辑标题' : undefined}
             >
-              {currentArticle ? articleTitle : 'Markdown 编辑器'}
+              {currentArticle ? articleTitle : '轻语'}
             </h1>
           )}
           {hasUnsavedChanges && (

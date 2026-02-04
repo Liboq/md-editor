@@ -10,8 +10,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Markdown 编辑器",
-  description: "一个支持实时预览和多主题的 Markdown 编辑器",
+  title: "轻语 - Markdown 编辑器",
+  description: "轻语，一个支持实时预览和多主题的 Markdown 编辑器，专为微信公众号排版优化",
+  icons: {
+    icon: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({
