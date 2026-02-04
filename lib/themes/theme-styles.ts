@@ -169,16 +169,7 @@ export function generateThemeCSS(theme: Theme): string {
       overflow: visible !important;
     }
 
-    /* 微信公众号兼容：禁用所有伪元素（公众号不支持 ::before/::after） */
-    article.preview-content *::before,
-    article.preview-content *::after,
-    div.preview-content *::before,
-    div.preview-content *::after,
-    .preview-content *::before,
-    .preview-content *::after {
-      display: none !important;
-      content: none !important;
-    }
+    /* 微信公众号兼容：伪元素已转换为实际 DOM 元素 */
 
     article.preview-content pre code,
     div.preview-content pre code,

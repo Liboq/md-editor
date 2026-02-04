@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/lib/themes/theme-context";
+import { processPseudoElements } from "@/lib/themes/pseudo-element-converter";
 
 // 预览区域的选择器 ID，用于 ClipboardJS 复制
 export const PREVIEW_SELECTOR = "#preview-output";
@@ -14,6 +16,21 @@ export interface PreviewProps {
 const Preview = React.memo(
   React.forwardRef<HTMLDivElement, PreviewProps>(
     ({ html, className }, ref) => {
+      const { activeTheme } = useTheme();
+      
+      // 处理伪元素：将 ::before/::after 转换为实际 DOM 元素
+      const processedHtml = React.useMemo(() => {
+        if (!html) return "";
+        
+        // 如果主题有 customCSS，处理其中的伪元素
+        if (activeTheme.customCSS) {
+          const { html: processed } = processPseudoElements(html, activeTheme.customCSS);
+          return processed;
+        }
+        
+        return html;
+      }, [html, activeTheme.customCSS]);
+      
       if (!html) {
         return (
           <div
@@ -31,7 +48,7 @@ const Preview = React.memo(
           ref={ref}
           id="preview-output"
           className={cn("preview-content", className)}
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: processedHtml }}
         />
       );
     }
