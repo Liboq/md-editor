@@ -1,67 +1,134 @@
 /**
  * 复制功能模块
  * 
- * 使用 clipboard.js 实现更可靠的复制功能，
- * 支持复制 HTML 内容到微信公众号编辑器。
+ * 参考 OnlineMarkdown 的实现方式，使用 clipboard.js 实现复制功能。
+ * 支持复制带样式的 HTML 内容到微信公众号编辑器。
  */
 
 import ClipboardJS from "clipboard";
 
 /**
- * 复制 HTML 内容到剪贴板
+ * 初始化复制按钮
  * 
- * 使用 clipboard.js 实现，通过创建临时元素触发复制。
- * 同时设置 text/html 和 text/plain 格式，确保微信公众号兼容。
+ * 参考 OnlineMarkdown 的实现：
+ * var clipboard = new Clipboard('.copy-button');
+ * 
+ * @param selector - 复制按钮的选择器
+ * @param getContent - 获取要复制内容的函数
+ * @param onSuccess - 复制成功回调
+ * @param onError - 复制失败回调
+ * @returns ClipboardJS 实例
+ */
+export function initCopyButton(
+  selector: string | Element,
+  getContent: () => string,
+  onSuccess?: () => void,
+  onError?: (err: Error) => void
+): ClipboardJS {
+  const clipboard = new ClipboardJS(selector, {
+    text: () => getContent(),
+  });
+
+  clipboard.on("success", (e) => {
+    e.clearSelection();
+    onSuccess?.();
+  });
+
+  clipboard.on("error", () => {
+    onError?.(new Error("复制失败"));
+  });
+
+  return clipboard;
+}
+
+/**
+ * 复制 HTML 内容到剪贴板（微信公众号兼容）
+ * 
+ * 核心实现：通过 copy 事件设置 text/html 格式，
+ * 这样粘贴到微信公众号时能保留样式。
  * 
  * @param html - 要复制的 HTML 内容
  * @returns 是否复制成功
  */
 export async function copyHTML(html: string): Promise<boolean> {
   return new Promise((resolve) => {
-    // 创建临时按钮
-    const btn = document.createElement("button");
-    btn.style.position = "fixed";
-    btn.style.left = "-9999px";
-    btn.style.top = "-9999px";
-    btn.setAttribute("data-clipboard-text", "placeholder");
-    document.body.appendChild(btn);
+    // 创建临时容器，放入要复制的 HTML
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "-9999px";
+    container.style.opacity = "0";
+    container.style.pointerEvents = "none";
+    // 确保内容可选中
+    container.style.userSelect = "text";
+    container.setAttribute("contenteditable", "true");
+    document.body.appendChild(container);
 
-    // 创建 clipboard.js 实例
-    const clipboard = new ClipboardJS(btn, {
-      text: () => stripHtml(html),
-    });
+    // 选中容器内容
+    const range = document.createRange();
+    range.selectNodeContents(container);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
 
-    // 监听复制事件，手动设置 HTML 格式
+    // 监听 copy 事件，设置 HTML 格式
     const copyHandler = (e: ClipboardEvent) => {
       e.preventDefault();
       if (e.clipboardData) {
+        // 设置 HTML 格式（微信公众号需要）
         e.clipboardData.setData("text/html", html);
+        // 同时设置纯文本格式作为降级
         e.clipboardData.setData("text/plain", stripHtml(html));
       }
     };
 
-    document.addEventListener("copy", copyHandler);
+    document.addEventListener("copy", copyHandler, true);
 
-    clipboard.on("success", () => {
-      cleanup();
-      resolve(true);
-    });
-
-    clipboard.on("error", () => {
-      cleanup();
-      // 尝试降级方案
-      copyHTMLFallback(html).then(resolve);
-    });
-
-    function cleanup() {
-      document.removeEventListener("copy", copyHandler);
-      clipboard.destroy();
-      document.body.removeChild(btn);
+    // 执行复制
+    let success = false;
+    try {
+      success = document.execCommand("copy");
+    } catch {
+      success = false;
     }
 
-    // 触发点击
-    btn.click();
+    // 清理
+    document.removeEventListener("copy", copyHandler, true);
+    selection?.removeAllRanges();
+    document.body.removeChild(container);
+
+    if (success) {
+      resolve(true);
+    } else {
+      // 尝试使用 Clipboard API 作为降级
+      copyHTMLWithClipboardAPI(html).then(resolve);
+    }
   });
+}
+
+/**
+ * 使用 Clipboard API 复制 HTML（现代浏览器）
+ */
+async function copyHTMLWithClipboardAPI(html: string): Promise<boolean> {
+  if (!navigator.clipboard?.write) {
+    return false;
+  }
+
+  try {
+    const htmlBlob = new Blob([html], { type: "text/html" });
+    const textBlob = new Blob([stripHtml(html)], { type: "text/plain" });
+    
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": htmlBlob,
+        "text/plain": textBlob,
+      }),
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -70,71 +137,18 @@ export async function copyHTML(html: string): Promise<boolean> {
  * @returns 是否复制成功
  */
 export async function copyText(text: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    // 创建临时按钮
-    const btn = document.createElement("button");
-    btn.style.position = "fixed";
-    btn.style.left = "-9999px";
-    btn.setAttribute("data-clipboard-text", text);
-    document.body.appendChild(btn);
-
-    const clipboard = new ClipboardJS(btn);
-
-    clipboard.on("success", () => {
-      clipboard.destroy();
-      document.body.removeChild(btn);
-      resolve(true);
-    });
-
-    clipboard.on("error", () => {
-      clipboard.destroy();
-      document.body.removeChild(btn);
-      // 降级方案
-      resolve(copyTextFallback(text));
-    });
-
-    btn.click();
-  });
-}
-
-/**
- * 降级方案：使用 execCommand + clipboardData.setData 复制 HTML
- */
-async function copyHTMLFallback(html: string): Promise<boolean> {
-  return new Promise<boolean>((resolve) => {
-    // 创建隐藏的 input 元素
-    let input = document.getElementById("copy-placeholder") as HTMLInputElement;
-    if (!input) {
-      input = document.createElement("input");
-      input.id = "copy-placeholder";
-      input.style.position = "absolute";
-      input.style.left = "-9999px";
-      input.style.zIndex = "-9999";
-      document.body.appendChild(input);
+  // 优先使用 Clipboard API
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // 降级到 execCommand
     }
+  }
 
-    input.value = "copy";
-    input.setSelectionRange(0, input.value.length);
-    input.focus();
-
-    const copyHandler = (e: ClipboardEvent) => {
-      e.preventDefault();
-      if (e.clipboardData) {
-        e.clipboardData.setData("text/html", html);
-        e.clipboardData.setData("text/plain", stripHtml(html));
-      }
-      document.removeEventListener("copy", copyHandler);
-      resolve(true);
-    };
-
-    document.addEventListener("copy", copyHandler);
-
-    const success = document.execCommand("copy");
-    if (!success) {
-      document.removeEventListener("copy", copyHandler);
-      resolve(false);
-    }
-  });
+  // 降级方案
+  return copyTextFallback(text);
 }
 
 /**
@@ -146,30 +160,17 @@ function copyTextFallback(text: string): boolean {
   textarea.style.position = "fixed";
   textarea.style.left = "-9999px";
   textarea.style.top = "-9999px";
+  textarea.style.opacity = "0";
   document.body.appendChild(textarea);
 
+  textarea.focus();
   textarea.select();
-  const success = document.execCommand("copy");
 
-  document.body.removeChild(textarea);
-  return success;
-}
+  let success = false;
+  try {
+    success = document.execCommand("copy");
+  } catch {
+    success = false;
+  }
 
-/**
- * 从 HTML 中提取纯文本
- */
-function stripHtml(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  return doc.body.textContent || "";
-}
-
-/**
- * 检查剪贴板 API 是否可用
- */
-export function isClipboardSupported(): boolean {
-  return (
-    typeof navigator !== "undefined" &&
-    typeof navigator.clipboard !== "undefined" &&
-    typeof navigator.clipboard.write === "function"
-  );
-}
+  document.body.rem

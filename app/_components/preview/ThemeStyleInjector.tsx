@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTheme } from "@/lib/themes/theme-context";
 import { generateThemeCSS } from "@/lib/themes/theme-styles";
 
@@ -9,7 +10,9 @@ import { generateThemeCSS } from "@/lib/themes/theme-styles";
  */
 export function ThemeStyleInjector() {
   const { activeTheme } = useTheme();
-  const css = generateThemeCSS(activeTheme);
+  
+  // 使用 useMemo 缓存 CSS，只在主题变化时重新生成
+  const css = useMemo(() => generateThemeCSS(activeTheme), [activeTheme]);
 
   return <style dangerouslySetInnerHTML={{ __html: css }} />;
 }

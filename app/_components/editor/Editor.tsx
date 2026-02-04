@@ -12,6 +12,10 @@ export interface EditorProps {
   onScroll?: () => void;
 }
 
+/**
+ * 编辑器组件
+ * 使用受控模式确保外部状态变化能同步到 textarea
+ */
 const Editor = React.forwardRef<HTMLTextAreaElement, EditorProps>(
   ({ value, onChange, className, placeholder = "在此输入 Markdown 内容...", onKeyDown, onScroll }, ref) => {
     return (

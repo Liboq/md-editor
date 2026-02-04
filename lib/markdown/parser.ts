@@ -100,22 +100,85 @@ marked.setOptions({
   async: false,
 });
 
+// 语言显示名称映射
+const languageDisplayNames: Record<string, string> = {
+  javascript: "JavaScript",
+  js: "JavaScript",
+  typescript: "TypeScript",
+  ts: "TypeScript",
+  python: "Python",
+  py: "Python",
+  java: "Java",
+  cpp: "C++",
+  c: "C",
+  csharp: "C#",
+  cs: "C#",
+  go: "Go",
+  rust: "Rust",
+  rs: "Rust",
+  php: "PHP",
+  ruby: "Ruby",
+  rb: "Ruby",
+  swift: "Swift",
+  kotlin: "Kotlin",
+  kt: "Kotlin",
+  objectivec: "Objective-C",
+  objc: "Objective-C",
+  css: "CSS",
+  scss: "SCSS",
+  less: "Less",
+  xml: "XML",
+  html: "HTML",
+  json: "JSON",
+  yaml: "YAML",
+  yml: "YAML",
+  markdown: "Markdown",
+  md: "Markdown",
+  sql: "SQL",
+  bash: "Bash",
+  sh: "Shell",
+  shell: "Shell",
+  powershell: "PowerShell",
+  ps1: "PowerShell",
+  lua: "Lua",
+  perl: "Perl",
+  r: "R",
+  scala: "Scala",
+  dart: "Dart",
+  groovy: "Groovy",
+  diff: "Diff",
+  ini: "INI",
+  nginx: "Nginx",
+  dockerfile: "Dockerfile",
+  docker: "Dockerfile",
+  plaintext: "Text",
+  text: "Text",
+};
+
 // 自定义代码块渲染器，添加语法高亮
 const renderer = new marked.Renderer();
 
 renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
+  // 获取语言显示名称
+  const displayLang = lang ? (languageDisplayNames[lang.toLowerCase()] || lang.toUpperCase()) : null;
+  
+  // 语言标签 HTML（如果有语言则显示）
+  const langLabel = displayLang 
+    ? `<span class="code-lang-label">${displayLang}</span>` 
+    : '';
+  
   // 只在指定语言且语言存在时才高亮（避免 highlightAuto 的性能问题）
   if (lang && hljs.getLanguage(lang)) {
     try {
       const highlighted = hljs.highlight(text, { language: lang }).value;
-      return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>`;
+      return `<pre class="code-block-wrapper">${langLabel}<code class="hljs language-${lang}">${highlighted}</code></pre>`;
     } catch {
       // 高亮失败，返回纯文本
     }
   }
   
   // 未指定语言或语言不支持，返回纯文本（不做自动检测）
-  return `<pre><code class="hljs">${escapeHtml(text)}</code></pre>`;
+  return `<pre class="code-block-wrapper">${langLabel}<code class="hljs">${escapeHtml(text)}</code></pre>`;
 };
 
 marked.use({ renderer });

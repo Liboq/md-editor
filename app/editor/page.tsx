@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback, useDeferredValue, startTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Editor } from "@/app/_components/editor/Editor";
 import { Toolbar } from "@/app/_components/editor/Toolbar";
 import { useEditor } from "@/app/_components/editor/hooks";
-import { Preview } from "@/app/_components/preview/Preview";
+import { Preview, PREVIEW_SELECTOR } from "@/app/_components/preview/Preview";
 import { ThemeStyleInjector } from "@/app/_components/preview/ThemeStyleInjector";
 import { ThemeSelector } from "@/app/_components/theme-selector/ThemeSelector";
 import { ThemeEditorDialog } from "@/app/_components/theme-selector/ThemeEditorDialog";
@@ -16,15 +16,12 @@ import { UserMenu } from "@/app/_components/auth/UserMenu";
 import { ShareDialog } from "@/app/_components/share/ShareDialog";
 import { OnboardingGuide } from "@/app/_components/editor/OnboardingGuide";
 import { parseMarkdown } from "@/lib/markdown/parser";
-import { useDebounce } from "@/hooks/useDebounce";
 import { useScrollSync } from "@/hooks/useScrollSync";
 import { useTheme } from "@/lib/themes/theme-context";
 import { useCodeTheme } from "@/lib/code-theme/code-theme-context";
 import { generateCodeThemeCSS } from "@/lib/code-theme/code-themes";
 import { useAuth } from "@/lib/auth/auth-context";
 import { articleService, Article } from "@/lib/supabase/article-service";
-import { convertToInlineStyles } from "@/lib/clipboard/inline-converter";
-import { copyHTML } from "@/lib/clipboard/copy";
 import { toast } from "sonner";
 import { Monitor, Smartphone, Link, Unlink, Share2, Save, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,7 +39,10 @@ function EditorContent() {
   const searchParams = useSearchParams();
   const articleId = searchParams.get('article');
   
-  const [content, setContent] = useState("");
+  // 使用 ref 存储实时内容，避免每次输入都触发重渲染
+  const contentRef = useRef("");
+  // 用于预览的内容状态（低优先级更新）
+  const [previewContent, setPreviewContent] = useState("");
   const [articleTitle, setArticleTitle] = useState("Markdown 编辑器");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [activeTab, setActiveTab] = useState("editor");
@@ -80,7 +80,8 @@ function EditorContent() {
       const article = await articleService.getArticle(id);
       if (article) {
         setCurrentArticle(article);
-        setContent(article.content);
+        contentRef.current = article.content;
+        setPreviewContent(article.content);
         setArticleTitle(article.title || '未命名文档');
         lastSavedContent.current = article.content;
         lastSavedTitle.current = article.title || '未命名文档';
@@ -91,10 +92,24 @@ function EditorContent() {
     }
   };
 
+  // 内容变化处理（高性能）
+  const handleContentChange = useCallback((value: string) => {
+    contentRef.current = value;
+    // 使用 startTransition 标记预览更新为低优先级
+    startTransition(() => {
+      setPreviewContent(value);
+    });
+    // 检测未保存更改
+    if (currentArticle) {
+      setHasUnsavedChanges(value !== lastSavedContent.current || articleTitle !== lastSavedTitle.current);
+    }
+  }, [currentArticle, articleTitle]);
+
   // 保存文章（包括标题）
   const saveArticle = useCallback(async () => {
     if (!currentArticle || !user) return;
     
+    const content = contentRef.current;
     const contentChanged = content !== lastSavedContent.current;
     const titleChanged = articleTitle !== lastSavedTitle.current;
     
@@ -117,7 +132,7 @@ function EditorContent() {
     } finally {
       setIsSaving(false);
     }
-  }, [currentArticle, content, articleTitle, user]);
+  }, [currentArticle, articleTitle, user]);
 
   // 手动保存
   const handleManualSave = async () => {
@@ -134,22 +149,20 @@ function EditorContent() {
     if (!currentArticle) return;
 
     const timer = setInterval(() => {
-      if (content !== lastSavedContent.current || articleTitle !== lastSavedTitle.current) {
+      if (contentRef.current !== lastSavedContent.current || articleTitle !== lastSavedTitle.current) {
         saveArticle();
       }
     }, AUTO_SAVE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [currentArticle, content, articleTitle, saveArticle]);
+  }, [currentArticle, articleTitle, saveArticle]);
 
-  // 检测未保存更改
+  // 检测标题变化的未保存更改
   useEffect(() => {
-    if (currentArticle && (content !== lastSavedContent.current || articleTitle !== lastSavedTitle.current)) {
-      setHasUnsavedChanges(true);
-    } else {
-      setHasUnsavedChanges(false);
+    if (currentArticle) {
+      setHasUnsavedChanges(contentRef.current !== lastSavedContent.current || articleTitle !== lastSavedTitle.current);
     }
-  }, [content, currentArticle]);
+  }, [articleTitle, currentArticle]);
 
   // 从 localStorage 恢复滚动同步设置
   useEffect(() => {
@@ -175,8 +188,8 @@ function EditorContent() {
     handlePreviewScroll,
   } = useScrollSync({ enabled: scrollSyncEnabled });
 
-  // 防抖处理 Markdown 内容
-  const debouncedContent = useDebounce(content, 100);
+  // 使用 useDeferredValue 进一步延迟预览更新
+  const deferredContent = useDeferredValue(previewContent);
 
   // 获取当前主题
   const { activeTheme } = useTheme();
@@ -185,41 +198,21 @@ function EditorContent() {
   const { activeCodeTheme } = useCodeTheme();
   const codeThemeCSS = useMemo(() => generateCodeThemeCSS(activeCodeTheme), [activeCodeTheme]);
 
-  // 解析 Markdown 为 HTML
+  // 解析 Markdown 为 HTML（使用延迟的内容，不阻塞输入）
   const html = useMemo(() => {
-    return parseMarkdown(debouncedContent);
-  }, [debouncedContent]);
+    return parseMarkdown(deferredContent);
+  }, [deferredContent]);
 
   // 编辑器 hook
   const { textareaRef, handleFormat, handleKeyDown } = useEditor({
-    value: content,
-    onChange: setContent,
+    value: contentRef.current,
+    onChange: handleContentChange,
   });
 
-  // 复制到微信公众号
-  const handleCopyToWeChat = async () => {
-    if (!html) {
-      toast.error("没有内容可复制");
-      return;
-    }
-
-    try {
-      // 转换为带行内样式的 HTML
-      const inlineHtml = convertToInlineStyles(html, activeTheme);
-
-      // 复制到剪贴板
-      const success = await copyHTML(inlineHtml);
-
-      if (success) {
-        toast.success("已复制到剪贴板，可直接粘贴到微信公众号");
-      } else {
-        toast.error("复制失败，请手动选择内容复制");
-      }
-    } catch (error) {
-      console.error("复制失败:", error);
-      toast.error("复制失败，请手动选择内容复制");
-    }
-  };
+  // 复制成功回调
+  const handleCopySuccess = useCallback(() => {
+    toast.success("已复制到剪贴板，可直接粘贴到微信公众号");
+  }, []);
 
   // 处理标题编辑
   const handleTitleClick = () => {
@@ -350,14 +343,20 @@ function EditorContent() {
 
       {/* 分享对话框 */}
       <ShareDialog
-        markdown={content}
+        markdown={previewContent}
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
       />
 
       {/* 工具栏 */}
       <div className="border-b px-2 sm:px-4 py-2 shrink-0 overflow-x-auto">
-        <Toolbar onFormat={handleFormat} onCopyToWeChat={handleCopyToWeChat} />
+        <Toolbar 
+          onFormat={handleFormat} 
+          onCopySuccess={handleCopySuccess}
+          previewSelector={PREVIEW_SELECTOR}
+          textareaRef={textareaRef}
+          onEditorChange={handleContentChange}
+        />
       </div>
 
       {/* 移动端标签切换 (< 768px) */}
@@ -374,8 +373,8 @@ function EditorContent() {
           <TabsContent value="editor" className="flex-1 p-4 mt-0 min-h-0">
             <Editor
               ref={textareaRef}
-              value={content}
-              onChange={setContent}
+              value={previewContent}
+              onChange={handleContentChange}
               className="h-full"
             />
           </TabsContent>
@@ -421,8 +420,8 @@ function EditorContent() {
                 }
                 scrollEditorRef.current = el;
               }}
-              value={content}
-              onChange={setContent}
+              value={previewContent}
+              onChange={handleContentChange}
               className="h-full"
               onKeyDown={handleKeyDown}
               onScroll={handleEditorScroll}

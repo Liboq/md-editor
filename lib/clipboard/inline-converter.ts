@@ -1,4 +1,5 @@
 import type { Theme, ThemeStyles } from "@/lib/themes/types";
+import type { CodeTheme } from "@/lib/code-theme/code-themes";
 
 /**
  * 安全获取嵌套属性
@@ -12,23 +13,15 @@ function safeGet<T>(obj: T | undefined, defaultValue: T): T {
  * 
  * 微信公众号不支持：
  * - 伪元素 (::before, ::after)
- * - 渐变 (linear-gradient, radial-gradient)
- * - position: absolute/fixed
  * - 某些 CSS3 属性
  */
 
 /**
  * 处理背景色，确保微信兼容
- * 渐变会被转换为纯色（提取第一个颜色）
  */
 function sanitizeBackground(value: string | undefined): string {
   if (!value) return '#ffffff';
   
-  // 渐变转纯色
-  if (value.includes('gradient')) {
-    const colorMatch = value.match(/#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\)/);
-    return colorMatch ? colorMatch[0] : '#ffffff';
-  }
   
   return value;
 }
@@ -494,51 +487,70 @@ function splitCodeContent(text: string): string {
 }
 
 /**
- * Highlight.js 类名到行内样式的映射（GitHub 风格）
+ * 根据代码主题生成 Highlight.js 类名到行内样式的映射
  */
-const hljsStyleMap: Record<string, string> = {
-  'hljs-comment': 'color: #6a737d; font-style: italic',
-  'hljs-quote': 'color: #6a737d; font-style: italic',
-  'hljs-keyword': 'color: #d73a49',
-  'hljs-selector-tag': 'color: #d73a49',
-  'hljs-literal': 'color: #d73a49',
-  'hljs-section': 'color: #d73a49',
-  'hljs-link': 'color: #d73a49',
-  'hljs-string': 'color: #032f62',
-  'hljs-title': 'color: #032f62',
-  'hljs-name': 'color: #032f62',
-  'hljs-type': 'color: #032f62',
-  'hljs-attribute': 'color: #032f62',
-  'hljs-symbol': 'color: #032f62',
-  'hljs-bullet': 'color: #032f62',
-  'hljs-addition': 'color: #22863a; background-color: #f0fff4',
-  'hljs-variable': 'color: #032f62',
-  'hljs-template-tag': 'color: #032f62',
-  'hljs-template-variable': 'color: #032f62',
-  'hljs-function': 'color: #6f42c1',
-  'hljs-built_in': 'color: #005cc5',
-  'hljs-number': 'color: #005cc5',
-  'hljs-attr': 'color: #6f42c1',
-  'hljs-meta': 'color: #22863a',
-  'hljs-deletion': 'color: #b31d28; background-color: #ffeef0',
-  'hljs-emphasis': 'font-style: italic',
-  'hljs-strong': 'font-weight: bold',
-  'hljs-params': 'color: #24292e',
-  'hljs-class': 'color: #005cc5',
-  'hljs-tag': 'color: #22863a',
-  'hljs-regexp': 'color: #032f62',
-  'hljs-selector-id': 'color: #6f42c1',
-  'hljs-selector-class': 'color: #6f42c1',
-  'hljs-selector-attr': 'color: #032f62',
-  'hljs-selector-pseudo': 'color: #6f42c1',
-  'hljs-doctag': 'color: #d73a49',
-  'hljs-subst': 'color: #24292e',
-};
+function generateHljsStyleMap(codeTheme?: CodeTheme): Record<string, string> {
+  // 默认使用 GitHub 风格
+  const theme = codeTheme || {
+    background: "#f6f8fa",
+    color: "#24292e",
+    comment: "#6a737d",
+    keyword: "#d73a49",
+    string: "#032f62",
+    number: "#005cc5",
+    function: "#6f42c1",
+    variable: "#e36209",
+    type: "#005cc5",
+    operator: "#d73a49",
+    punctuation: "#24292e",
+    attr: "#6f42c1",
+    meta: "#22863a",
+  };
+
+  return {
+    'hljs-comment': `color: ${theme.comment}; font-style: italic`,
+    'hljs-quote': `color: ${theme.comment}; font-style: italic`,
+    'hljs-keyword': `color: ${theme.keyword}`,
+    'hljs-selector-tag': `color: ${theme.keyword}`,
+    'hljs-literal': `color: ${theme.keyword}`,
+    'hljs-section': `color: ${theme.keyword}`,
+    'hljs-link': `color: ${theme.keyword}`,
+    'hljs-string': `color: ${theme.string}`,
+    'hljs-title': `color: ${theme.string}`,
+    'hljs-name': `color: ${theme.string}`,
+    'hljs-type': `color: ${theme.type}`,
+    'hljs-attribute': `color: ${theme.string}`,
+    'hljs-symbol': `color: ${theme.punctuation}`,
+    'hljs-bullet': `color: ${theme.punctuation}`,
+    'hljs-addition': `color: ${theme.meta}; background-color: rgba(0, 255, 0, 0.1)`,
+    'hljs-variable': `color: ${theme.variable}`,
+    'hljs-template-tag': `color: ${theme.string}`,
+    'hljs-template-variable': `color: ${theme.variable}`,
+    'hljs-function': `color: ${theme.function}`,
+    'hljs-built_in': `color: ${theme.type}`,
+    'hljs-number': `color: ${theme.number}`,
+    'hljs-attr': `color: ${theme.attr}`,
+    'hljs-meta': `color: ${theme.meta}`,
+    'hljs-deletion': `color: ${theme.keyword}; background-color: rgba(255, 0, 0, 0.1)`,
+    'hljs-emphasis': 'font-style: italic',
+    'hljs-strong': 'font-weight: bold',
+    'hljs-params': `color: ${theme.color}`,
+    'hljs-class': `color: ${theme.type}`,
+    'hljs-tag': `color: ${theme.meta}`,
+    'hljs-regexp': `color: ${theme.string}`,
+    'hljs-selector-id': `color: ${theme.function}`,
+    'hljs-selector-class': `color: ${theme.function}`,
+    'hljs-selector-attr': `color: ${theme.string}`,
+    'hljs-selector-pseudo': `color: ${theme.function}`,
+    'hljs-doctag': `color: ${theme.keyword}`,
+    'hljs-subst': `color: ${theme.color}`,
+  };
+}
 
 /**
  * 将 hljs 类名转换为行内样式
  */
-function getHljsInlineStyle(className: string): string {
+function getHljsInlineStyle(className: string, hljsStyleMap: Record<string, string>): string {
   const classes = className.split(/\s+/);
   const styles: string[] = [];
   
@@ -559,7 +571,9 @@ function processNode(
   styles: ThemeStyles,
   rowIndex?: number,
   parentTagName?: string,
-  extraStyles?: { strong?: Record<string, string>; em?: Record<string, string> }
+  extraStyles?: { strong?: Record<string, string>; em?: Record<string, string> },
+  hljsStyleMap?: Record<string, string>,
+  codeTheme?: CodeTheme
 ): string {
   if (node.nodeType === Node.TEXT_NODE) {
     return node.textContent || "";
@@ -581,11 +595,11 @@ function processNode(
   const isEvenRow = tagName === "tr" && rowIndex !== undefined && rowIndex % 2 === 1;
   
   // 特殊处理：hljs 高亮的 span 元素
-  if (tagName === "span" && element.className) {
-    const hljsStyle = getHljsInlineStyle(element.className);
+  if (tagName === "span" && element.className && hljsStyleMap) {
+    const hljsStyle = getHljsInlineStyle(element.className, hljsStyleMap);
     if (hljsStyle) {
       const childContent = Array.from(element.childNodes)
-        .map((child) => processNode(child, styles, undefined, tagName, extraStyles))
+        .map((child) => processNode(child, styles, undefined, tagName, extraStyles, hljsStyleMap, codeTheme))
         .join("");
       return `<span style="${hljsStyle}">${childContent}</span>`;
     }
@@ -594,8 +608,19 @@ function processNode(
   // 特殊处理：pre 内的 code 使用不同样式
   let inlineStyle: string;
   if (tagName === "code" && parentTagName === "pre") {
-    // pre 内的 code：透明背景，继承颜色
-    inlineStyle = "background: transparent; color: inherit; padding: 0; border-radius: 0";
+    // pre 内的 code：使用代码主题的背景和颜色
+    const bg = codeTheme?.background || "#f6f8fa";
+    const color = codeTheme?.color || "#24292e";
+    inlineStyle = `background: ${bg}; color: ${color}; padding: 1em; border-radius: 6px; display: block; overflow-x: auto; white-space: pre; font-family: Consolas, Monaco, monospace; font-size: 0.9em; line-height: 1.5`;
+  } else if (tagName === "pre" && element.classList.contains("code-block-wrapper")) {
+    // 代码块容器：使用相对定位
+    inlineStyle = "position: relative; margin: 1em 0; padding: 0; background: transparent";
+  } else if (tagName === "pre") {
+    // 普通 pre：透明背景，让内部 code 显示样式
+    inlineStyle = "margin: 1em 0; padding: 0; background: transparent";
+  } else if (tagName === "span" && element.classList.contains("code-lang-label")) {
+    // 语言标签：使用绝对定位显示在右上角，更明显的样式
+    inlineStyle = "position: absolute; top: 0; right: 0; padding: 4px 12px; font-size: 12px; font-weight: 500; font-family: system-ui, sans-serif; color: #fff; background: rgba(0, 0, 0, 0.6); border-radius: 0 6px 0 6px; user-select: none; text-transform: uppercase; letter-spacing: 0.5px";
   } else {
     inlineStyle = getElementStyles(tagName, styles, isEvenRow, extraStyles);
   }
@@ -613,9 +638,9 @@ function processNode(
   const childContent = Array.from(element.childNodes)
     .map((child) => {
       if (child.nodeType === Node.ELEMENT_NODE && (child as Element).tagName.toLowerCase() === "tr") {
-        return processNode(child, styles, childRowIndex++, tagName, extraStyles);
+        return processNode(child, styles, childRowIndex++, tagName, extraStyles, hljsStyleMap, codeTheme);
       }
-      return processNode(child, styles, undefined, tagName, extraStyles);
+      return processNode(child, styles, undefined, tagName, extraStyles, hljsStyleMap, codeTheme);
     })
     .join("");
 
@@ -640,9 +665,13 @@ function processNode(
  * 将 HTML 转换为带行内样式的 HTML
  * @param html - 原始 HTML
  * @param theme - 主题对象
+ * @param codeTheme - 代码主题对象（可选）
  * @returns 带行内样式的 HTML
  */
-export function convertToInlineStyles(html: string, theme: Theme): string {
+export function convertToInlineStyles(html: string, theme: Theme, codeTheme?: CodeTheme): string {
+  // 生成 hljs 样式映射
+  const hljsStyleMap = generateHljsStyleMap(codeTheme);
+  
   // 如果主题有 customCSS，从中解析样式
   let styles: ThemeStyles;
   let extraStyles: { strong?: Record<string, string>; em?: Record<string, string> } | undefined;
@@ -698,7 +727,7 @@ export function convertToInlineStyles(html: string, theme: Theme): string {
 
   // 处理所有子节点
   const content = Array.from(doc.body.childNodes)
-    .map((node) => processNode(node, styles, undefined, undefined, extraStyles))
+    .map((node) => processNode(node, styles, undefined, undefined, extraStyles, hljsStyleMap, codeTheme))
     .join("");
 
   return `<div style="${containerStyle}">${content}</div>`;

@@ -141,6 +141,17 @@ export function useEditor({ value, onChange }: UseEditorOptions): UseEditorRetur
         case "italic":
           wrapSelection("*", "*");
           break;
+        case "strikethrough":
+          wrapSelection("~~", "~~");
+          break;
+        case "center":
+          // 使用 HTML 标签实现居中
+          if (hasSelection) {
+            wrapSelection("<center>", "</center>");
+          } else {
+            insertAtCursor("<center>居中内容</center>");
+          }
+          break;
         case "h1":
           if (hasSelection) {
             wrapSelection("# ", "\n");

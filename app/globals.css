@@ -23,6 +23,37 @@
   margin: 1em 0;
   padding: 0 !important;
   background: transparent !important;
+  position: relative;
+}
+
+/* 代码块语言标签 */
+.preview-content .code-block-wrapper {
+  position: relative;
+  margin: 1em 0;
+  padding: 0;
+  background: transparent;
+}
+
+.preview-content .code-lang-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 0 6px 0 6px;
+  z-index: 1;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dark .preview-content .code-lang-label {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .preview-content pre code.hljs {
@@ -255,11 +286,6 @@ body {
 /* 确保最小宽度 320px 可用 */
 html {
   min-width: 320px;
-}
-
-/* 平滑过渡 */
-.preview-content * {
-  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 /* 工具栏按钮 hover 状态 */
