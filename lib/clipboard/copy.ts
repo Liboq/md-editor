@@ -8,6 +8,14 @@
 import ClipboardJS from "clipboard";
 
 /**
+ * 从 HTML 中提取纯文本
+ */
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+}
+
+/**
  * 初始化复制按钮
  * 
  * 参考 OnlineMarkdown 的实现：
@@ -60,7 +68,6 @@ export async function copyHTML(html: string): Promise<boolean> {
     container.style.top = "-9999px";
     container.style.opacity = "0";
     container.style.pointerEvents = "none";
-    // 确保内容可选中
     container.style.userSelect = "text";
     container.setAttribute("contenteditable", "true");
     document.body.appendChild(container);
@@ -76,9 +83,7 @@ export async function copyHTML(html: string): Promise<boolean> {
     const copyHandler = (e: ClipboardEvent) => {
       e.preventDefault();
       if (e.clipboardData) {
-        // 设置 HTML 格式（微信公众号需要）
         e.clipboardData.setData("text/html", html);
-        // 同时设置纯文本格式作为降级
         e.clipboardData.setData("text/plain", stripHtml(html));
       }
     };
@@ -101,7 +106,6 @@ export async function copyHTML(html: string): Promise<boolean> {
     if (success) {
       resolve(true);
     } else {
-      // 尝试使用 Clipboard API 作为降级
       copyHTMLWithClipboardAPI(html).then(resolve);
     }
   });
@@ -133,11 +137,8 @@ async function copyHTMLWithClipboardAPI(html: string): Promise<boolean> {
 
 /**
  * 复制纯文本到剪贴板
- * @param text - 要复制的文本
- * @returns 是否复制成功
  */
 export async function copyText(text: string): Promise<boolean> {
-  // 优先使用 Clipboard API
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);
@@ -146,8 +147,6 @@ export async function copyText(text: string): Promise<boolean> {
       // 降级到 execCommand
     }
   }
-
-  // 降级方案
   return copyTextFallback(text);
 }
 
@@ -173,4 +172,17 @@ function copyTextFallback(text: string): boolean {
     success = false;
   }
 
-  document.body.rem
+  document.body.removeChild(textarea);
+  return success;
+}
+
+/**
+ * 检查剪贴板 API 是否可用
+ */
+export function isClipboardSupported(): boolean {
+  return (
+    typeof navigator !== "undefined" &&
+    typeof navigator.clipboard !== "undefined" &&
+    typeof navigator.clipboard.write === "function"
+  );
+}
