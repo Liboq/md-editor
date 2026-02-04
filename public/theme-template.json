@@ -1,0 +1,147 @@
+{
+  "$schema": "./theme-schema.json",
+  "_说明": "这是一个完整的主题模板，您可以复制并修改此文件来创建自定义主题",
+  "_注意": "导入时请删除以下划线开头的说明字段",
+  
+  "id": "my-custom-theme",
+  "name": "我的自定义主题",
+  "description": "这是一个自定义主题的描述",
+  "isBuiltIn": false,
+  
+  "styles": {
+    "_基础样式说明": "background: 预览区背景色, text: 主文字颜色, textSecondary: 次要文字颜色",
+    "background": "#ffffff",
+    "text": "#1a1a1a",
+    "textSecondary": "#666666",
+    
+    "_标题样式说明": "h1-h6 标题样式，支持 color/fontSize/fontWeight/lineHeight/marginTop/marginBottom/borderBottom/paddingBottom",
+    "h1": {
+      "color": "#1a1a1a",
+      "fontSize": "2em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em",
+      "borderBottom": "1px solid #e5e5e5",
+      "paddingBottom": "0.3em"
+    },
+    "h2": {
+      "color": "#1a1a1a",
+      "fontSize": "1.5em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em",
+      "borderBottom": "1px solid #e5e5e5",
+      "paddingBottom": "0.3em"
+    },
+    "h3": {
+      "color": "#1a1a1a",
+      "fontSize": "1.25em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em"
+    },
+    "h4": {
+      "color": "#1a1a1a",
+      "fontSize": "1.1em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em"
+    },
+    "h5": {
+      "color": "#1a1a1a",
+      "fontSize": "1em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em"
+    },
+    "h6": {
+      "color": "#666666",
+      "fontSize": "0.9em",
+      "fontWeight": "600",
+      "lineHeight": "1.3",
+      "marginTop": "1.5em",
+      "marginBottom": "0.5em"
+    },
+    
+    "_段落样式说明": "正文段落样式",
+    "paragraph": {
+      "color": "#1a1a1a",
+      "fontSize": "16px",
+      "lineHeight": "1.8",
+      "marginBottom": "1em"
+    },
+    
+    "_链接样式说明": "超链接样式",
+    "link": {
+      "color": "#0066cc",
+      "textDecoration": "none"
+    },
+    
+    "_引用块样式说明": "blockquote 引用块样式",
+    "blockquote": {
+      "background": "#f9f9f9",
+      "borderLeft": "4px solid #ddd",
+      "color": "#666666",
+      "padding": "1em",
+      "margin": "1em 0",
+      "fontStyle": "italic"
+    },
+    
+    "_行内代码样式说明": "行内 code 标签样式",
+    "code": {
+      "background": "#f4f4f4",
+      "color": "#c7254e",
+      "padding": "2px 6px",
+      "borderRadius": "3px",
+      "fontFamily": "Consolas, Monaco, monospace",
+      "fontSize": "0.9em"
+    },
+    
+    "_代码块样式说明": "pre 代码块样式",
+    "codeBlock": {
+      "background": "#f4f4f4",
+      "color": "#333333",
+      "padding": "1em",
+      "borderRadius": "6px",
+      "fontFamily": "Consolas, Monaco, monospace",
+      "fontSize": "0.9em",
+      "lineHeight": "1.5",
+      "overflow": "auto"
+    },
+    
+    "_列表样式说明": "ul/ol 列表样式",
+    "list": {
+      "color": "#1a1a1a",
+      "marginLeft": "1.5em",
+      "marginBottom": "1em",
+      "lineHeight": "1.8"
+    },
+    
+    "_表格样式说明": "table 表格样式",
+    "table": {
+      "borderColor": "#ddd",
+      "headerBackground": "#f4f4f4",
+      "headerColor": "#1a1a1a",
+      "cellPadding": "8px 12px",
+      "evenRowBackground": "#fafafa"
+    },
+    
+    "_图片样式说明": "img 图片样式",
+    "image": {
+      "maxWidth": "100%",
+      "borderRadius": "4px",
+      "margin": "1em 0"
+    },
+    
+    "_分割线样式说明": "hr 分割线样式",
+    "hr": {
+      "border": "1px solid #e5e5e5",
+      "margin": "2em 0"
+    }
+  }
+}

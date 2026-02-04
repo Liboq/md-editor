@@ -1,0 +1,121 @@
+{
+  "id": "wechat-green",
+  "name": "微信绿",
+  "description": "微信公众号风格的绿色主题",
+  "isBuiltIn": false,
+  "styles": {
+    "background": "#ffffff",
+    "text": "#3f3f3f",
+    "textSecondary": "#888888",
+    "h1": {
+      "color": "#1aad19",
+      "fontSize": "1.8em",
+      "fontWeight": "700",
+      "lineHeight": "1.4",
+      "marginTop": "1.2em",
+      "marginBottom": "0.6em",
+      "borderBottom": "2px solid #1aad19",
+      "paddingBottom": "0.4em"
+    },
+    "h2": {
+      "color": "#1aad19",
+      "fontSize": "1.4em",
+      "fontWeight": "700",
+      "lineHeight": "1.4",
+      "marginTop": "1.2em",
+      "marginBottom": "0.5em",
+      "borderBottom": "1px solid #e5e5e5",
+      "paddingBottom": "0.3em"
+    },
+    "h3": {
+      "color": "#1aad19",
+      "fontSize": "1.2em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "h4": {
+      "color": "#3f3f3f",
+      "fontSize": "1.1em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "h5": {
+      "color": "#3f3f3f",
+      "fontSize": "1em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "h6": {
+      "color": "#888888",
+      "fontSize": "0.9em",
+      "fontWeight": "600",
+      "lineHeight": "1.4",
+      "marginTop": "1em",
+      "marginBottom": "0.4em"
+    },
+    "paragraph": {
+      "color": "#3f3f3f",
+      "fontSize": "15px",
+      "lineHeight": "2",
+      "marginBottom": "1.2em"
+    },
+    "link": {
+      "color": "#576b95",
+      "textDecoration": "none"
+    },
+    "blockquote": {
+      "background": "#f7f7f7",
+      "borderLeft": "3px solid #1aad19",
+      "color": "#666666",
+      "padding": "12px 16px",
+      "margin": "1em 0",
+      "fontStyle": "normal"
+    },
+    "code": {
+      "background": "#f0f0f0",
+      "color": "#1aad19",
+      "padding": "2px 6px",
+      "borderRadius": "4px",
+      "fontFamily": "Menlo, Monaco, Consolas, monospace",
+      "fontSize": "0.85em"
+    },
+    "codeBlock": {
+      "background": "#2d2d2d",
+      "color": "#cccccc",
+      "padding": "16px",
+      "borderRadius": "8px",
+      "fontFamily": "Menlo, Monaco, Consolas, monospace",
+      "fontSize": "0.85em",
+      "lineHeight": "1.6",
+      "overflow": "auto"
+    },
+    "list": {
+      "color": "#3f3f3f",
+      "marginLeft": "1.5em",
+      "marginBottom": "1em",
+      "lineHeight": "2"
+    },
+    "table": {
+      "borderColor": "#e5e5e5",
+      "headerBackground": "#1aad19",
+      "headerColor": "#ffffff",
+      "cellPadding": "10px 14px",
+      "evenRowBackground": "#f9f9f9"
+    },
+    "image": {
+      "maxWidth": "100%",
+      "borderRadius": "6px",
+      "margin": "1em 0"
+    },
+    "hr": {
+      "border": "1px dashed #1aad19",
+      "margin": "2em 0"
+    }
+  }
+}

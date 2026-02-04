@@ -1,0 +1,121 @@
+{
+  "id": "github-style",
+  "name": "GitHub 风格",
+  "description": "模仿 GitHub README 的经典风格",
+  "isBuiltIn": false,
+  "styles": {
+    "background": "#ffffff",
+    "text": "#24292f",
+    "textSecondary": "#57606a",
+    "h1": {
+      "color": "#24292f",
+      "fontSize": "2em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px",
+      "borderBottom": "1px solid #d0d7de",
+      "paddingBottom": "0.3em"
+    },
+    "h2": {
+      "color": "#24292f",
+      "fontSize": "1.5em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px",
+      "borderBottom": "1px solid #d0d7de",
+      "paddingBottom": "0.3em"
+    },
+    "h3": {
+      "color": "#24292f",
+      "fontSize": "1.25em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px"
+    },
+    "h4": {
+      "color": "#24292f",
+      "fontSize": "1em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px"
+    },
+    "h5": {
+      "color": "#24292f",
+      "fontSize": "0.875em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px"
+    },
+    "h6": {
+      "color": "#57606a",
+      "fontSize": "0.85em",
+      "fontWeight": "600",
+      "lineHeight": "1.25",
+      "marginTop": "24px",
+      "marginBottom": "16px"
+    },
+    "paragraph": {
+      "color": "#24292f",
+      "fontSize": "16px",
+      "lineHeight": "1.5",
+      "marginBottom": "16px"
+    },
+    "link": {
+      "color": "#0969da",
+      "textDecoration": "none"
+    },
+    "blockquote": {
+      "background": "transparent",
+      "borderLeft": "4px solid #d0d7de",
+      "color": "#57606a",
+      "padding": "0 1em",
+      "margin": "0 0 16px 0",
+      "fontStyle": "normal"
+    },
+    "code": {
+      "background": "#f6f8fa",
+      "color": "#24292f",
+      "padding": "0.2em 0.4em",
+      "borderRadius": "6px",
+      "fontFamily": "ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace",
+      "fontSize": "85%"
+    },
+    "codeBlock": {
+      "background": "#f6f8fa",
+      "color": "#24292f",
+      "padding": "16px",
+      "borderRadius": "6px",
+      "fontFamily": "ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace",
+      "fontSize": "85%",
+      "lineHeight": "1.45",
+      "overflow": "auto"
+    },
+    "list": {
+      "color": "#24292f",
+      "marginLeft": "2em",
+      "marginBottom": "16px",
+      "lineHeight": "1.5"
+    },
+    "table": {
+      "borderColor": "#d0d7de",
+      "headerBackground": "#f6f8fa",
+      "headerColor": "#24292f",
+      "cellPadding": "6px 13px",
+      "evenRowBackground": "#f6f8fa"
+    },
+    "image": {
+      "maxWidth": "100%",
+      "borderRadius": "0",
+      "margin": "0 0 16px 0"
+    },
+    "hr": {
+      "border": "1px solid #d0d7de",
+      "margin": "24px 0"
+    }
+  }
+}
