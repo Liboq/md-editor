@@ -209,9 +209,9 @@ function EditorContent() {
     onChange: handleContentChange,
   });
 
-  // 复制成功回调
+  // 复制成功回调（可用于其他用途，如统计）
   const handleCopySuccess = useCallback(() => {
-    toast.success("已复制到剪贴板，可直接粘贴到微信公众号");
+    // Toolbar 内部已处理 toast 提示，这里不再重复显示
   }, []);
 
   // 处理标题编辑
@@ -356,6 +356,9 @@ function EditorContent() {
           previewSelector={PREVIEW_SELECTOR}
           textareaRef={textareaRef}
           onEditorChange={handleContentChange}
+          getMarkdown={() => contentRef.current}
+          getHtml={() => html}
+          theme={activeTheme}
         />
       </div>
 

@@ -195,20 +195,40 @@ function preprocessMarkdown(markdown: string): string {
 
 /**
  * 将行内代码内容分割为带 span 的 HTML，支持在标点处换行
+ * 注意：不分割 HTML 实体（如 &lt; &gt; &quot; 等）
  */
 function splitCodeContent(text: string): string {
-  // 匹配标点符号（逗号、分号、冒号、点、斜杠等）
-  const parts = text.split(/([,;:.\/\\|])/g);
+  // 先保护 HTML 实体，避免在实体的分号处分割
+  const entityPlaceholder = '\x00ENTITY\x00';
+  const entities: string[] = [];
   
-  return parts
+  // 匹配 HTML 实体（如 &lt; &gt; &amp; &quot; &#39; &#123; 等）
+  const protectedText = text.replace(/&[a-zA-Z0-9#]+;/g, (match) => {
+    entities.push(match);
+    return entityPlaceholder;
+  });
+  
+  // 匹配标点符号（逗号、分号、冒号、点、斜杠等）
+  const parts = protectedText.split(/([,;:.\/\\|])/g);
+  
+  // 恢复 HTML 实体
+  let entityIndex = 0;
+  const result = parts
     .filter(part => part !== "")
     .map(part => {
+      // 恢复 HTML 实体
+      const restoredPart = part.replace(new RegExp(entityPlaceholder.replace(/\x00/g, '\\x00'), 'g'), () => {
+        return entities[entityIndex++] || '';
+      });
+      
       // 标点符号使用 pun 类，其他使用 pln 类
-      const isPunctuation = /^[,;:.\/\\|]$/.test(part);
+      const isPunctuation = /^[,;:.\/\\|]$/.test(restoredPart);
       const className = isPunctuation ? "pun" : "pln";
-      return `<span class="${className}">${part}</span>`;
+      return `<span class="${className}">${restoredPart}</span>`;
     })
     .join("");
+  
+  return result;
 }
 
 /**
