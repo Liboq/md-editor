@@ -12,7 +12,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Button } from '@/components/ui/button';
 import { FileText, LogOut } from 'lucide-react';
 
 interface UserMenuProps {

@@ -314,7 +314,7 @@ export function useEditor({ value, onChange }: UseEditorOptions): UseEditorRetur
         if (!textarea) return;
 
         const { selectionStart, selectionEnd } = textarea;
-        const { newText, newCursorPos } = insertTextAtCursor(
+        const { newText, newCursorPos: _newCursorPos } = insertTextAtCursor(
           value,
           selectionStart,
           "  "

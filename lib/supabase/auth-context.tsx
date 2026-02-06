@@ -154,7 +154,7 @@ async function upsertUserProfile(user: User): Promise<UserProfile | null> {
  * @param userId 用户 ID
  * @returns 用户资料对象或 null
  */
-async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
+async function _fetchUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from(DB_TABLES.USER_PROFILES)
     .select('*')

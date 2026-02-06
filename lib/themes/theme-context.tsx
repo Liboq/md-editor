@@ -158,7 +158,7 @@ export function ThemeProvider({ children, userId, isAuthenticated }: ThemeProvid
       // 添加云端主题到本地
       if (themesToAddLocally.length > 0 || themesToUpdateLocally.length > 0) {
         setCustomThemes(prev => {
-          let updated = [...prev];
+          const updated = [...prev];
           
           // 添加新主题
           for (const theme of themesToAddLocally) {

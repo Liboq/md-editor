@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import type { Theme } from '../themes/types';
 import {
   // 类型常量
   PLATFORMS,
@@ -143,14 +144,14 @@ describe('lib/export/index.ts 模块导出', () => {
 
     describe('exportContent', () => {
       it('应使用指定平台导出内容', () => {
-        const result = exportContent('markdown', '# Hello World', '', {} as any);
+        const result = exportContent('markdown', '# Hello World', '', {} as Theme);
         expect(result).not.toBeNull();
         expect(result?.content).toBe('# Hello World');
         expect(result?.mimeType).toBe('text/plain');
       });
 
       it('对于不存在的平台应返回 null', () => {
-        const result = exportContent('unknown', '# Hello', '', {} as any);
+        const result = exportContent('unknown', '# Hello', '', {} as Theme);
         expect(result).toBeNull();
       });
     });

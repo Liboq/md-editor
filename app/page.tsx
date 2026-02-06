@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { 
-  FileText, 
   Palette, 
   Share2, 
   Cloud, 

@@ -76,7 +76,7 @@ export function ThemeImportExport() {
       } else {
         toast.error("导入失败");
       }
-    } catch (error) {
+    } catch {
       toast.error("无法加载预设主题");
     }
   };
@@ -105,7 +105,7 @@ export function ThemeImportExport() {
       } else {
         toast.error("导入失败");
       }
-    } catch (error) {
+    } catch {
       toast.error("无法解析主题文件");
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import ClipboardJS from "clipboard";
 import {
   Bold,
   Italic,
@@ -142,7 +143,6 @@ export function Toolbar({ onFormat, onCopySuccess, previewSelector, textareaRef,
     if (!copyButtonRef.current || !previewSelector || platform !== PLATFORMS.WECHAT) return;
     
     // 直接使用 ClipboardJS，通过 data-clipboard-target 复制 DOM 内容
-    const ClipboardJS = require("clipboard");
     const clipboard = new ClipboardJS(copyButtonRef.current);
     
     clipboard.on("success", (e: { clearSelection: () => void }) => {

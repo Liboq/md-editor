@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -293,7 +293,7 @@ export function ThemeEditorDialog() {
   const [themeName, setThemeName] = useState("");
   const [customCSS, setCustomCSS] = useState(DEFAULT_CSS);
   const [copiedSelector, setCopiedSelector] = useState<string | null>(null);
-  const { saveCustomTheme, activeTheme, customThemes } = useTheme();
+  const { saveCustomTheme, customThemes } = useTheme();
 
   // 打开新建主题对话框
   const handleOpenCreate = () => {

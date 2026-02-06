@@ -116,7 +116,7 @@ function parseContent(content: string, element?: Element): string {
  */
 function parseSelector(selector: string): { tag: string | null; fullSelector: string } {
   // 清理选择器，移除 .preview-content 前缀
-  let cleanSelector = selector
+  const cleanSelector = selector
     .replace(/\.preview-content\s*/g, '')
     .replace(/article\.preview-content\s*/g, '')
     .replace(/div\.preview-content\s*/g, '')
@@ -151,7 +151,7 @@ export function injectPseudoElements(html: string, pseudoElements: PseudoElement
     
     // 构建 CSS 选择器用于 querySelectorAll
     // 例如: "ol li" -> 查找所有 ol 下的 li
-    let cssSelector = fullSelector;
+    const cssSelector = fullSelector;
     
     // 查找所有匹配的元素
     let elements: NodeListOf<Element>;
