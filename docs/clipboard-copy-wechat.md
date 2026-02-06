@@ -1,20 +1,22 @@
-# 从踩坑到优雅：React 中实现微信公众号复制功能的演进之路
 
-在开发 Markdown 编辑器时，"复制到公众号"是一个看似简单却暗藏玄机的功能。本文记录了我在 Next.js 项目中实现这一功能的三次迭代，希望能帮助遇到类似问题的开发者少走弯路。
 
-## 需求背景
+>在开发 Markdown 编辑器时，**复制到公众号**是一个看似简单却暗藏玄机的功能。本文记录了我在 Next.js 项目中实现这一功能的三次迭代，希望能帮助遇到类似问题的开发者少走弯路。 
 
-我们的编辑器需要将 Markdown 渲染后的富文本内容复制到微信公众号编辑器。核心诉求很明确：**用户点击按钮后，粘贴到公众号时能保留完整样式**。
+## 开发背景
 
-听起来不难，对吧？
+在开发markdown编辑器时，一个最重要的功能一直困扰我,如何将预览到的内容转换为公众号的内容。核心诉求很明确：**用户点击按钮后，粘贴到公众号时能保留完整样式**。
 
-## 第一版：execCommand 的尝试
+在盛行ai开发的环境下，听起来不难，对吧？说下使用的编辑器和模型：`Kiro+Claude Opus4.5`
+
+## 第一版：让ai自己安排如何实现复制功能
+
+根据execCommand 的尝试
 
 最初的方案是使用传统的 `document.execCommand("copy")`，通过监听 copy 事件设置 `text/html` 格式：
 
 ```typescript
 const copyHandler = (e: ClipboardEvent) => {
-  e.preventDefault();
+  e.preventDefault();1
   e.clipboardData?.setData("text/html", html);
   e.clipboardData?.setData("text/plain", stripHtml(html));
 };
@@ -23,16 +25,19 @@ document.addEventListener("copy", copyHandler, true);
 document.execCommand("copy");
 ```
 
-这个方案有两个问题：
+这个方案有几个问题：
 
-1. `execCommand` 已被标记为 deprecated，浏览器兼容性存在隐患
+1. **execCommand**已被标记为 deprecated，浏览器兼容性存在隐患
 2. 复制的是生成的 HTML 字符串，而非实际渲染的 DOM 内容
+3. 在样式上会存在一定的差异，也有可能是转换代码写的有问题
 
 粘贴到公众号后，样式经常丢失或错乱。
 
-## 第二版：ClipboardJS + innerHTML
+## 第二版：由于微信公众号只支持行内样式，尝试样式转换
 
-参考了一些开源项目后，我引入了 ClipboardJS 库，并尝试复制预览区域的 innerHTML：
+使用`ClipboardJS + innerHTML`
+
+我引入了 ClipboardJS 库，并尝试复制预览区域的 innerHTML：
 
 ```typescript
 const clipboard = initCopyButton(
@@ -45,11 +50,11 @@ const clipboard = initCopyButton(
 );
 ```
 
-这个方案解决了 API 废弃的问题，但本质上还是在复制 HTML 字符串。粘贴效果依然不理想——公众号编辑器似乎对"字符串形式的 HTML"和"真实 DOM 内容"的处理方式不同。
+这个方案解决了 API 废弃的问题，但本质上还是在复制 HTML 字符串。粘贴效果依然不理想——公众号编辑器似乎对"字符串形式的 HTML"和"真实 DOM 内容"的处理方式不同，复制过去，直接被当做了`text`处理，over。
 
 ## 第三版：data-clipboard-target 的顿悟
 
-转机出现在研究 OnlineMarkdown 源码时。我发现它的实现异常简洁：
+转机出现在我以前用过的markdwon编辑器(`md.qikqiak.com`),研究 OnlineMarkdown 源码时。我发现它的实现异常简洁：
 
 ```javascript
 var clipboard = new Clipboard('.copy-button');
@@ -124,9 +129,12 @@ const ClipboardJS = require("clipboard"); // 而非顶层 import
 ```
 
 ## 总结
-
-这次迭代让我深刻体会到：**有时候最简单的方案就是最好的方案**。
+这次markdown编辑器的开发，让我深刻体会到：AI对需求的理解是有限的，如果遇到麻烦的问题，还是需要开发人员多思考和研究的。
 
 从手动拼接 HTML 到利用浏览器原生能力，代码量减少了，效果反而更好。技术选型时，不妨多研究成熟项目的实现——它们往往已经踩过你即将踩的坑。
 
 希望这篇文章能帮助你在实现类似功能时少走弯路。如果你有更好的方案，欢迎交流！
+
+> 这篇文章就是使用我的编辑器`https://md-editor-psi.vercel.app/`实现的，感兴趣的话可以去看看，`github`开源的，欢迎大家指教。
+
+

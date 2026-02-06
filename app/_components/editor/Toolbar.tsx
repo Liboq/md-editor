@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import ClipboardJS from "clipboard";
 import {
   Bold,
   Italic,
@@ -34,7 +33,9 @@ import { toast } from "sonner";
 import { PlatformSelector, usePlatformPreference } from "./PlatformSelector";
 import { getAllExporters, exportContent, PLATFORMS } from "@/lib/export";
 import { copyHTML, copyText } from "@/lib/clipboard/copy";
+import { prepareForWechat } from "@/lib/clipboard/juice-inliner";
 import type { Theme } from "@/lib/themes/types";
+import type { CodeTheme } from "@/lib/code-theme/code-themes";
 
 export type FormatAction =
   | "bold"
@@ -66,6 +67,8 @@ interface ToolbarProps {
   getHtml?: () => string;
   /** 当前主题配置 */
   theme?: Theme;
+  /** 当前代码主题配置 */
+  codeTheme?: CodeTheme;
 }
 
 interface ToolbarButton {
@@ -121,7 +124,7 @@ function isButtonActive(action: FormatAction, style: SelectionStyle): boolean {
   }
 }
 
-export function Toolbar({ onFormat, onCopySuccess, previewSelector, textareaRef, onEditorChange, className, getMarkdown, getHtml, theme }: ToolbarProps) {
+export function Toolbar({ onFormat, onCopySuccess, previewSelector, textareaRef, onEditorChange, className, getMarkdown, getHtml, theme, codeTheme }: ToolbarProps) {
   // 使用空 ref 作为默认值，避免 hook 条件调用
   const emptyRef = React.useRef<HTMLTextAreaElement | null>(null);
   const actualRef = textareaRef || emptyRef;
@@ -136,34 +139,49 @@ export function Toolbar({ onFormat, onCopySuccess, previewSelector, textareaRef,
   // 复制按钮 ref
   const copyButtonRef = React.useRef<HTMLButtonElement>(null);
   
-  // 初始化 ClipboardJS - 仅用于微信公众号
-  // 使用 data-clipboard-target 指向预览区域
-  React.useEffect(() => {
-    // 只有当选择微信公众号时才初始化 ClipboardJS
-    if (!copyButtonRef.current || !previewSelector || platform !== PLATFORMS.WECHAT) return;
+  /**
+   * 处理微信公众号的复制操作
+   * 1. 获取原始 HTML
+   * 2. 使用 juice 将 CSS 内联到 HTML
+   * 3. 应用微信适配器处理
+   * 4. 复制到剪贴板
+   */
+  const handleWechatCopy = React.useCallback(async () => {
+    // 优先使用 getHtml 获取原始 HTML
+    let html = getHtml?.() || "";
     
-    // 直接使用 ClipboardJS，通过 data-clipboard-target 复制 DOM 内容
-    const clipboard = new ClipboardJS(copyButtonRef.current);
+    // 如果没有 getHtml，从 DOM 获取
+    if (!html && previewSelector) {
+      const previewElement = document.querySelector(previewSelector);
+      if (previewElement) {
+        html = previewElement.innerHTML;
+      }
+    }
     
-    clipboard.on("success", (e: { clearSelection: () => void }) => {
-      e.clearSelection();
+    if (!html) {
+      toast.error("复制失败", {
+        description: "没有可复制的内容",
+      });
+      return;
+    }
+    
+    // 使用 juice 内联样式并应用微信适配
+    const processedHtml = prepareForWechat(html, theme, codeTheme);
+    
+    // 复制到剪贴板
+    const success = await copyHTML(processedHtml);
+    
+    if (success) {
       toast.success("复制成功", {
         description: "内容已复制到剪贴板，可粘贴到微信公众号",
       });
       onCopySuccess?.();
-    });
-    
-    clipboard.on("error", (e: unknown) => {
-      console.error("复制失败:", e);
+    } else {
       toast.error("复制失败", {
         description: "请重试或手动复制内容",
       });
-    });
-    
-    return () => {
-      clipboard.destroy();
-    };
-  }, [previewSelector, onCopySuccess, platform]);
+    }
+  }, [previewSelector, getHtml, theme, codeTheme, onCopySuccess]);
   
   /**
    * 处理其他平台的复制操作
@@ -289,13 +307,13 @@ export function Toolbar({ onFormat, onCopySuccess, previewSelector, textareaRef,
             <Tooltip>
               <TooltipTrigger asChild>
                 {platform === PLATFORMS.WECHAT ? (
-                  // 微信公众号：使用 ClipboardJS + data-clipboard-target
+                  // 微信公众号：使用 copyHTML 复制带样式的 HTML
                   <Button
                     ref={copyButtonRef}
                     variant="outline"
                     size="sm"
                     className="h-8 gap-1 cursor-pointer"
-                    data-clipboard-target={previewSelector}
+                    onClick={handleWechatCopy}
                   >
                     <Copy className="h-4 w-4" />
                     <span className="hidden sm:inline">复制</span>

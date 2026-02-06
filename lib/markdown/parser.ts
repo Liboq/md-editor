@@ -162,23 +162,26 @@ renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
   // 获取语言显示名称
   const displayLang = lang ? (languageDisplayNames[lang.toLowerCase()] || lang.toUpperCase()) : null;
   
-  // 语言标签 HTML（如果有语言则显示）
+  // 语言标签 HTML - 放在 code 内部作为第一行
+  // 使用 display: block 独占一行，右对齐，独特的背景色和字体加粗
+  const langLabelStyle = 'display: block; text-align: right; font-size: 12px; font-weight: 600; color: #1a73e8; background: rgba(26, 115, 232, 0.08); padding: 6px 12px; margin: -1em -1em 0.8em -1em; border-radius: 6px 6px 0 0; font-family: system-ui, -apple-system, sans-serif;';
   const langLabel = displayLang 
-    ? `<span class="code-lang-label">${displayLang}</span>` 
+    ? `<span class="code-lang-label" style="${langLabelStyle}">${displayLang}</span>` 
     : '';
   
   // 只在指定语言且语言存在时才高亮（避免 highlightAuto 的性能问题）
   if (lang && hljs.getLanguage(lang)) {
     try {
       const highlighted = hljs.highlight(text, { language: lang }).value;
-      return `<pre class="code-block-wrapper">${langLabel}<code class="hljs language-${lang}">${highlighted}</code></pre>`;
+      // 语言标签放在 code 内部最前面，作为第一行
+      return `<pre class="code-block-wrapper"><code class="hljs language-${lang}">${langLabel}${highlighted}</code></pre>`;
     } catch {
       // 高亮失败，返回纯文本
     }
   }
   
   // 未指定语言或语言不支持，返回纯文本（不做自动检测）
-  return `<pre class="code-block-wrapper">${langLabel}<code class="hljs">${escapeHtml(text)}</code></pre>`;
+  return `<pre class="code-block-wrapper"><code class="hljs">${langLabel}${escapeHtml(text)}</code></pre>`;
 };
 
 marked.use({ renderer });

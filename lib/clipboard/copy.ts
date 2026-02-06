@@ -6,6 +6,11 @@
  */
 
 import ClipboardJS from "clipboard";
+import { adaptForWechat, type WechatAdapterOptions } from "./wechat-adapter";
+
+// 导出微信适配器
+export { adaptForWechat, type WechatAdapterOptions } from "./wechat-adapter";
+export { needsWechatAdaptation } from "./wechat-adapter";
 
 /**
  * 从 HTML 中提取纯文本
@@ -52,13 +57,55 @@ export function initCopyButton(
 /**
  * 复制 HTML 内容到剪贴板（微信公众号兼容）
  * 
- * 核心实现：通过 copy 事件设置 text/html 格式，
- * 这样粘贴到微信公众号时能保留样式。
+ * 核心实现：使用 Clipboard API 的 write 方法，
+ * 设置 text/html MIME 类型，这样粘贴到微信公众号时能保留样式。
+ * 
+ * 参考文档中的实现：
+ * ```javascript
+ * const blob = new Blob([inlined], { type: 'text/html' })
+ * await navigator.clipboard.write([
+ *   new ClipboardItem({ 'text/html': blob })
+ * ])
+ * ```
  * 
  * @param html - 要复制的 HTML 内容
+ * @param wechatOptions - 微信适配选项（可选）
  * @returns 是否复制成功
  */
-export async function copyHTML(html: string): Promise<boolean> {
+export async function copyHTML(
+  html: string,
+  wechatOptions?: WechatAdapterOptions
+): Promise<boolean> {
+  // 应用微信适配
+  const adaptedHtml = wechatOptions ? adaptForWechat(html, wechatOptions) : html;
+  
+  // 优先使用现代 Clipboard API（支持 text/html MIME 类型）
+  if (navigator.clipboard?.write) {
+    try {
+      const htmlBlob = new Blob([adaptedHtml], { type: "text/html" });
+      const textBlob = new Blob([stripHtml(adaptedHtml)], { type: "text/plain" });
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": htmlBlob,
+          "text/plain": textBlob,
+        }),
+      ]);
+      return true;
+    } catch (err) {
+      console.warn("Clipboard API 写入失败，降级到 execCommand:", err);
+      // 降级到 execCommand 方式
+    }
+  }
+  
+  // 降级方案：使用 execCommand + copy 事件
+  return copyHTMLWithExecCommand(adaptedHtml);
+}
+
+/**
+ * 使用 execCommand 复制 HTML（降级方案）
+ */
+function copyHTMLWithExecCommand(html: string): Promise<boolean> {
   return new Promise((resolve) => {
     // 创建临时容器，放入要复制的 HTML
     const container = document.createElement("div");
@@ -103,36 +150,8 @@ export async function copyHTML(html: string): Promise<boolean> {
     selection?.removeAllRanges();
     document.body.removeChild(container);
 
-    if (success) {
-      resolve(true);
-    } else {
-      copyHTMLWithClipboardAPI(html).then(resolve);
-    }
+    resolve(success);
   });
-}
-
-/**
- * 使用 Clipboard API 复制 HTML（现代浏览器）
- */
-async function copyHTMLWithClipboardAPI(html: string): Promise<boolean> {
-  if (!navigator.clipboard?.write) {
-    return false;
-  }
-
-  try {
-    const htmlBlob = new Blob([html], { type: "text/html" });
-    const textBlob = new Blob([stripHtml(html)], { type: "text/plain" });
-    
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        "text/html": htmlBlob,
-        "text/plain": textBlob,
-      }),
-    ]);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /**

@@ -198,7 +198,7 @@ function EditorContent() {
   const { activeCodeTheme } = useCodeTheme();
   const codeThemeCSS = useMemo(() => generateCodeThemeCSS(activeCodeTheme), [activeCodeTheme]);
 
-  // 解析 Markdown 为 HTML（使用延迟的内容，不阻塞输入）
+  // 解析 Markdown 为 HTML（用于复制功能，使用延迟的内容）
   const html = useMemo(() => {
     return parseMarkdown(deferredContent);
   }, [deferredContent]);
@@ -359,6 +359,7 @@ function EditorContent() {
           getMarkdown={() => contentRef.current}
           getHtml={() => html}
           theme={activeTheme}
+          codeTheme={activeCodeTheme}
         />
       </div>
 
@@ -382,7 +383,7 @@ function EditorContent() {
             />
           </TabsContent>
           <TabsContent value="preview" className="flex-1 p-4 mt-0 overflow-auto">
-            <Preview ref={previewRef} html={html} />
+            <Preview ref={previewRef} markdown={deferredContent} />
           </TabsContent>
         </Tabs>
       </div>
@@ -480,7 +481,7 @@ function EditorContent() {
                   : "w-full"
               }
             >
-              <Preview ref={previewRef} html={html} className={previewMode === "mobile" ? "p-4" : ""} />
+              <Preview ref={previewRef} markdown={deferredContent} className={previewMode === "mobile" ? "p-4" : ""} />
             </div>
           </div>
         </div>

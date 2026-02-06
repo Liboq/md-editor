@@ -613,14 +613,14 @@ function processNode(
     const color = codeTheme?.color || "#24292e";
     inlineStyle = `background: ${bg}; color: ${color}; padding: 1em; border-radius: 6px; display: block; overflow-x: auto; white-space: pre; font-family: Consolas, Monaco, monospace; font-size: 0.9em; line-height: 1.5`;
   } else if (tagName === "pre" && element.classList.contains("code-block-wrapper")) {
-    // 代码块容器：使用相对定位
-    inlineStyle = "position: relative; margin: 1em 0; padding: 0; background: transparent";
+    // 代码块容器：不使用 position（微信不支持）
+    inlineStyle = "margin: 1em 0; padding: 0; background: transparent";
   } else if (tagName === "pre") {
     // 普通 pre：透明背景，让内部 code 显示样式
     inlineStyle = "margin: 1em 0; padding: 0; background: transparent";
   } else if (tagName === "span" && element.classList.contains("code-lang-label")) {
-    // 语言标签：使用绝对定位显示在右上角，更明显的样式
-    inlineStyle = "position: absolute; top: 0; right: 0; padding: 4px 12px; font-size: 12px; font-weight: 500; font-family: system-ui, sans-serif; color: #fff; background: rgba(0, 0, 0, 0.6); border-radius: 0 6px 0 6px; user-select: none; text-transform: uppercase; letter-spacing: 0.5px";
+    // 语言标签：在 code 内部作为第一行，右对齐，独特的背景色和字体加粗
+    inlineStyle = "display: block; text-align: right; font-size: 12px; font-weight: 600; color: #1a73e8; background: rgba(26, 115, 232, 0.08); padding: 6px 12px; margin: -1em -1em 0.8em -1em; border-radius: 6px 6px 0 0; font-family: system-ui, -apple-system, sans-serif";
   } else {
     inlineStyle = getElementStyles(tagName, styles, isEvenRow, extraStyles);
   }
