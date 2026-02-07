@@ -199,6 +199,7 @@ function EditorContent() {
   const codeThemeCSS = useMemo(() => generateCodeThemeCSS(activeCodeTheme), [activeCodeTheme]);
 
   // 解析 Markdown 为 HTML（用于复制功能，使用延迟的内容）
+  // 返回原始 HTML，复制时由 Toolbar 的 prepareForWechat 处理内联样式
   const html = useMemo(() => {
     return parseMarkdown(deferredContent);
   }, [deferredContent]);

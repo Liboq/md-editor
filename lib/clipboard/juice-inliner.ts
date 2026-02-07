@@ -90,6 +90,57 @@ function resolveCssVariables(css: string): string {
 }
 
 /**
+ * 包裹裸文本，防止微信把 strong/em 后面的文本解析为 section
+ * 例如：<strong>标题</strong>：后面的文本 -> <strong>标题</strong><span style="...">：后面的文本</span>
+ * 
+ * 处理范围：li、p、td、th、blockquote 等块级元素内的裸文本
+ */
+function wrapBareText(html: string): string {
+  // 需要处理的块级元素
+  const blockElements = ['li', 'p', 'td', 'th', 'blockquote', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+  
+  // 用于包裹文本的 span 样式
+  const spanStyle = 'box-sizing: border-box; margin: 0;';
+  
+  let result = html;
+  
+  for (const tag of blockElements) {
+    // 匹配块级元素内的内容
+    const regex = new RegExp(`(<${tag}[^>]*>)([\\s\\S]*?)(<\\/${tag}>)`, 'gi');
+    
+    result = result.replace(regex, (_, tagOpen, content, tagClose) => {
+      // 在内容中，将 </strong>、</em>、</b>、</i>、</code> 后面的裸文本用 span 包裹
+      let processed = content;
+      
+      // 匹配 </strong>、</em>、</b>、</i>、</code> 后面紧跟的文本（不以 < 开头的内容）
+      processed = processed.replace(
+        /(<\/(?:strong|em|b|i|code)[^>]*>)([^<]+)/gi,
+        (_m: string, closeTag: string, text: string) => {
+          // 如果文本只有空白，不处理
+          if (!text.trim()) return `${closeTag}${text}`;
+          return `${closeTag}<span style="${spanStyle}">${text}</span>`;
+        }
+      );
+      
+      // 处理开头的裸文本（在第一个标签之前的文本）
+      // 例如：<p>文本<strong>粗体</strong></p> -> <p><span>文本</span><strong>粗体</strong></p>
+      processed = processed.replace(
+        /^([^<]+)(<(?:strong|em|b|i|code|a|span)[^>]*>)/i,
+        (m: string, text: string, openTag: string) => {
+          // 如果文本只有空白，不处理
+          if (!text.trim()) return m;
+          return `<span style="${spanStyle}">${text}</span>${openTag}`;
+        }
+      );
+      
+      return `${tagOpen}${processed}${tagClose}`;
+    });
+  }
+  
+  return result;
+}
+
+/**
  * 生成基础样式（重置和通用样式）
  */
 function generateBaseCSS(): string {
@@ -219,36 +270,19 @@ function generateBaseCSS(): string {
       margin: 2em 0;
     }
     
-    /* 语言标签 - 在 code 内部作为第一行，右对齐 */
+    /* 语言标签 - 在 section 内、pre 上方、与 code 贴合 */
     .code-lang-label {
       display: block;
       text-align: right;
       font-size: 12px;
-      font-weight: 600;
-      color: #1a73e8;
-      background: rgba(26, 115, 232, 0.08);
-      padding: 6px 12px;
-      margin: -1em -1em 0.8em -1em;
+      font-weight: 700;
+      color: #fff;
+      background: #3b82f6;
+      padding: 4px 12px;
+      margin: 0;
       border-radius: 6px 6px 0 0;
       font-family: system-ui, -apple-system, sans-serif;
-    }
-    
-    /* 代码块容器 */
-    .code-block-wrapper {
-      margin: 1em 0;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #f6f8fa;
-    }
-    
-    .code-block-wrapper code {
-      display: block;
-      padding: 1em;
-    }
-    
-    /* 有语言标签时，code 的 padding-top 需要调整 */
-    .code-block-wrapper code .code-lang-label + * {
-      margin-top: 0;
+      letter-spacing: 0.5px;
     }
   `;
 }
@@ -280,7 +314,11 @@ export function inlineStyles(
   
   // 4. 使用 juice 内联样式
   try {
-    const inlinedHtml = juice.inlineContent(wrappedHtml, fullCSS, JUICE_OPTIONS);
+    let inlinedHtml = juice.inlineContent(wrappedHtml, fullCSS, JUICE_OPTIONS);
+    
+    // 5. 包裹裸文本，防止微信解析问题
+    inlinedHtml = wrapBareText(inlinedHtml);
+    
     return inlinedHtml;
   } catch (error) {
     console.error("juice 内联样式失败:", error);
@@ -293,6 +331,7 @@ export function inlineStyles(
  * 完整的微信公众号复制处理流程
  * 1. 使用 juice 内联样式
  * 2. 应用微信适配器处理
+ * 3. 清理多余的空白和换行
  * 
  * @param html - 原始 HTML
  * @param theme - 主题配置
@@ -315,6 +354,12 @@ export function prepareForWechat(
     sanitizeStyles: true,
     removeIds: true,
   });
+  
+  // 3. 清理多余的空白和换行（juice 可能产生）
+  // 移除标签之间的多余换行和空白
+  result = result.replace(/>\s+</g, '><');
+  // 移除开头和结尾的空白
+  result = result.trim();
   
   return result;
 }

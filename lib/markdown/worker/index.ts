@@ -14,6 +14,7 @@ export { useMarkdownWorker } from "./useMarkdownWorker";
 
 export type {
   RenderResult,
+  RenderWithStylesResult,
   ExtractResult,
   LintResult,
 } from "./procedures";

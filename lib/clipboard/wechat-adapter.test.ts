@@ -314,3 +314,53 @@ describe('getUnsafeCssProperties', () => {
     expect(props).toContain('filter');
   });
 });
+
+describe('空元素清理', () => {
+  it('应该移除空的 p 标签', () => {
+    const html = '<p>内容</p><p></p><p>更多内容</p>';
+    const result = adaptForWechat(html);
+    
+    expect(result).not.toMatch(/<p[^>]*>\s*<\/p>/);
+    expect(result).toContain('内容');
+    expect(result).toContain('更多内容');
+  });
+
+  it('应该移除带 style 属性的空 p 标签', () => {
+    const html = '<p style="margin: 1em;">内容</p><p style="margin: 1em;"></p><p>更多</p>';
+    const result = adaptForWechat(html);
+    
+    expect(result).not.toMatch(/<p[^>]*>\s*<\/p>/);
+    expect(result).toContain('内容');
+    expect(result).toContain('更多');
+  });
+
+  it('应该移除只包含 br 的 p 标签', () => {
+    const html = '<p>内容</p><p><br></p><p>更多</p>';
+    const result = adaptForWechat(html);
+    
+    expect(result).not.toMatch(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/);
+  });
+
+  it('应该移除 ProseMirror 相关的空元素', () => {
+    const html = '<p><span leaf=""><br class="ProseMirror-trailingBreak"></span></p>';
+    const result = adaptForWechat(html);
+    
+    expect(result).not.toContain('ProseMirror');
+    expect(result).not.toContain('leaf=');
+  });
+
+  it('应该移除只包含 &nbsp; 的 p 标签', () => {
+    const html = '<p>内容</p><p>&nbsp;</p><p>更多</p>';
+    const result = adaptForWechat(html);
+    
+    expect(result).not.toMatch(/<p[^>]*>\s*&nbsp;\s*<\/p>/);
+  });
+
+  it('应该限制连续 br 标签数量', () => {
+    const html = '<p>内容</p><br><br><br><br><br><p>更多</p>';
+    const result = adaptForWechat(html);
+    
+    // 最多保留 2 个连续的 br
+    expect(result).not.toMatch(/(<br\s*\/?>\s*){3,}/);
+  });
+});

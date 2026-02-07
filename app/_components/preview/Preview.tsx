@@ -5,8 +5,6 @@ import morphdom from "morphdom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/themes/theme-context";
 import { useCodeTheme } from "@/lib/code-theme/code-theme-context";
-import { generateThemeCSS } from "@/lib/themes/theme-styles";
-import { generateCodeThemeCSS } from "@/lib/code-theme/code-themes";
 import { processPseudoElements } from "@/lib/themes/pseudo-element-converter";
 import { useMarkdownWorker } from "@/lib/markdown/worker";
 
@@ -25,9 +23,9 @@ export interface PreviewProps {
 }
 
 /**
- * 生成 iframe 内部的完整 HTML 文档
+ * 生成 iframe 内部的完整 HTML 文档（使用内联样式）
  */
-function generateIframeDocument(content: string, styles: string): string {
+function generateIframeDocument(content: string): string {
   return `
 <!DOCTYPE html>
 <html style="height: 100%;">
@@ -35,7 +33,7 @@ function generateIframeDocument(content: string, styles: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* 重置样式 */
+    /* 仅保留基础重置样式 */
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -44,23 +42,12 @@ function generateIframeDocument(content: string, styles: string): string {
       margin: 0;
       padding: 0;
       min-height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      color: #333;
       background: transparent;
     }
-    
-    /* 确保行内元素正确显示 */
-    strong, b { font-weight: bold; }
-    em, i { font-style: italic; }
-    
-    /* 主题和代码样式 */
-    ${styles}
   </style>
 </head>
 <body>
-  <div id="preview-output" class="preview-content">${content}</div>
+  ${content}
 </body>
 </html>
   `.trim();
@@ -70,55 +57,52 @@ function generateIframeDocument(content: string, styles: string): string {
  * 预览组件
  * 
  * 特性：
- * - Web Worker 渲染：Markdown 处理在后台线程执行，不阻塞 UI
+ * - Web Worker 渲染：Markdown 处理和样式内联在后台线程执行，不阻塞 UI
  * - iframe 沙箱隔离：预览样式不影响编辑器
  * - morphdom 增量更新：仅更新变化部分，提升性能
  * - 防抖渲染：100ms 防抖，避免频繁渲染
+ * - 内联样式：使用 juice 将 CSS 内联到 HTML 元素，不使用 <style> 标签
  */
 const Preview = React.memo(
   React.forwardRef<HTMLDivElement, PreviewProps>(
     ({ markdown, html, className }, ref) => {
       const { activeTheme } = useTheme();
       const { activeCodeTheme } = useCodeTheme();
-      const { render: workerRender } = useMarkdownWorker();
+      const { renderWithStyles } = useMarkdownWorker();
       const iframeRef = React.useRef<HTMLIFrameElement>(null);
       const containerRef = React.useRef<HTMLDivElement>(null);
       const pendingUpdateRef = React.useRef<NodeJS.Timeout | null>(null);
       const lastHtmlRef = React.useRef<string>("");
-      const lastStylesRef = React.useRef<string>("");
       
-      // 渲染后的 HTML 状态
-      const [renderedHtml, setRenderedHtml] = React.useState<string>(html || "");
+      // 渲染后的内联样式 HTML 状态
+      const [inlinedHtml, setInlinedHtml] = React.useState<string>("");
       
-      // 使用 Worker 渲染 Markdown
+      // 使用 Worker 渲染 Markdown 并内联样式
       React.useEffect(() => {
         if (markdown !== undefined) {
-          // 使用 Worker 渲染 Markdown
-          workerRender(markdown).then(setRenderedHtml);
+          // 使用 Worker 渲染 Markdown 并内联样式
+          renderWithStyles(markdown, activeTheme, activeCodeTheme).then((result) => {
+            // 处理伪元素：将 ::before/::after 转换为实际 DOM 元素
+            if (activeTheme.customCSS) {
+              const { html: processed } = processPseudoElements(result, activeTheme.customCSS);
+              setInlinedHtml(processed);
+            } else {
+              setInlinedHtml(result);
+            }
+          });
         } else if (html !== undefined) {
-          // 直接使用传入的 HTML
-          setRenderedHtml(html);
+          // 直接使用传入的 HTML（已经是内联样式）
+          setInlinedHtml(html);
         }
-      }, [markdown, html, workerRender]);
+      }, [markdown, html, renderWithStyles, activeTheme, activeCodeTheme]);
       
-      // 处理伪元素：将 ::before/::after 转换为实际 DOM 元素
-      const processedHtml = React.useMemo(() => {
-        if (!renderedHtml) return "";
-        
-        if (activeTheme.customCSS) {
-          const { html: processed } = processPseudoElements(renderedHtml, activeTheme.customCSS);
-          return processed;
+      // 最终显示的 HTML
+      const displayHtml = React.useMemo(() => {
+        if (!inlinedHtml) {
+          return '<div id="preview-output" class="preview-content"><span style="color: #999;">预览将在此显示...</span></div>';
         }
-        
-        return renderedHtml;
-      }, [renderedHtml, activeTheme.customCSS]);
-      
-      // 生成完整的样式
-      const fullStyles = React.useMemo(() => {
-        const themeStyles = generateThemeCSS(activeTheme);
-        const codeStyles = generateCodeThemeCSS(activeCodeTheme);
-        return `${themeStyles}\n${codeStyles}`;
-      }, [activeTheme, activeCodeTheme]);
+        return inlinedHtml;
+      }, [inlinedHtml]);
       
       // 使用 morphdom 增量更新 iframe 内容
       const updateIframeContent = React.useCallback(() => {
@@ -130,45 +114,40 @@ const Preview = React.memo(
         
         const contentDiv = iframeDoc.getElementById("preview-output");
         
-        // 如果样式变化，需要重新写入整个文档
-        if (fullStyles !== lastStylesRef.current || !contentDiv) {
-          const docContent = generateIframeDocument(
-            processedHtml || '<span style="color: #999;">预览将在此显示...</span>',
-            fullStyles
-          );
+        // 如果没有内容容器，需要重新写入整个文档
+        if (!contentDiv) {
+          const docContent = generateIframeDocument(displayHtml);
           iframeDoc.open();
           iframeDoc.write(docContent);
           iframeDoc.close();
-          lastStylesRef.current = fullStyles;
-          lastHtmlRef.current = processedHtml;
+          lastHtmlRef.current = displayHtml;
           return;
         }
         
-        // 如果只有内容变化，使用 morphdom 增量更新
-        if (processedHtml !== lastHtmlRef.current) {
-          const newContent = processedHtml || '<span style="color: #999;">预览将在此显示...</span>';
-          
+        // 如果内容变化，使用 morphdom 增量更新
+        if (displayHtml !== lastHtmlRef.current) {
           // 创建临时元素用于 morphdom 比较
           const tempDiv = iframeDoc.createElement("div");
-          tempDiv.id = "preview-output";
-          tempDiv.className = "preview-content";
-          tempDiv.innerHTML = newContent;
+          tempDiv.innerHTML = displayHtml;
+          const newContentDiv = tempDiv.firstElementChild as HTMLElement;
           
-          // 使用 morphdom 进行 DOM diff，仅更新变化部分
-          morphdom(contentDiv, tempDiv, {
-            // 保留滚动位置
-            onBeforeElUpdated: (fromEl, toEl) => {
-              // 跳过相同的元素
-              if (fromEl.isEqualNode(toEl)) {
-                return false;
-              }
-              return true;
-            },
-          });
+          if (newContentDiv) {
+            // 使用 morphdom 进行 DOM diff，仅更新变化部分
+            morphdom(contentDiv, newContentDiv, {
+              // 保留滚动位置
+              onBeforeElUpdated: (fromEl, toEl) => {
+                // 跳过相同的元素
+                if (fromEl.isEqualNode(toEl)) {
+                  return false;
+                }
+                return true;
+              },
+            });
+          }
           
-          lastHtmlRef.current = processedHtml;
+          lastHtmlRef.current = displayHtml;
         }
-      }, [processedHtml, fullStyles]);
+      }, [displayHtml]);
       
       // 防抖更新
       React.useEffect(() => {

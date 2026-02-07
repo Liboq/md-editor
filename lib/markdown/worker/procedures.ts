@@ -5,10 +5,23 @@
  * 这些方法在 Web Worker 中执行，避免阻塞主线程。
  */
 
+import type { Theme } from "@/lib/themes/types";
+import type { CodeTheme } from "@/lib/code-theme/code-themes";
+
 /**
  * 渲染结果类型
  */
 export interface RenderResult {
+  html: string;
+  /** 渲染耗时（毫秒） */
+  duration: number;
+}
+
+/**
+ * 带内联样式的渲染结果类型
+ */
+export interface RenderWithStylesResult {
+  /** 内联样式后的 HTML */
   html: string;
   /** 渲染耗时（毫秒） */
   duration: number;
@@ -47,6 +60,23 @@ export function renderMarkdown(
 ): RenderResult {
   const start = performance.now();
   const html = parseMarkdown(markdown);
+  const duration = performance.now() - start;
+  return { html, duration };
+}
+
+/**
+ * 渲染 Markdown 并内联样式
+ */
+export function renderMarkdownWithStyles(
+  markdown: string,
+  parseMarkdown: (md: string) => string,
+  inlineStyles: (html: string, theme?: Theme, codeTheme?: CodeTheme) => string,
+  theme?: Theme,
+  codeTheme?: CodeTheme
+): RenderWithStylesResult {
+  const start = performance.now();
+  const rawHtml = parseMarkdown(markdown);
+  const html = inlineStyles(rawHtml, theme, codeTheme);
   const duration = performance.now() - start;
   return { html, duration };
 }

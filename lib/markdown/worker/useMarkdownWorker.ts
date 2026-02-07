@@ -8,8 +8,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { getMarkdownWorker, type RenderResult } from "./index";
+import { getMarkdownWorker, type RenderResult, type RenderWithStylesResult } from "./index";
 import { parseMarkdown } from "../parser";
+import { inlineStyles } from "@/lib/clipboard/juice-inliner";
+import type { Theme } from "@/lib/themes/types";
+import type { CodeTheme } from "@/lib/code-theme/code-themes";
 
 /**
  * Hook 返回值类型
@@ -17,6 +20,8 @@ import { parseMarkdown } from "../parser";
 interface UseMarkdownWorkerResult {
   /** 渲染 Markdown 为 HTML */
   render: (markdown: string) => Promise<string>;
+  /** 渲染 Markdown 为带内联样式的 HTML */
+  renderWithStyles: (markdown: string, theme?: Theme, codeTheme?: CodeTheme) => Promise<string>;
   /** Worker 是否可用 */
   isWorkerAvailable: boolean;
   /** 是否正在渲染 */
@@ -90,8 +95,35 @@ export function useMarkdownWorker(): UseMarkdownWorkerResult {
     }
   }, []);
 
+  /**
+   * 渲染 Markdown 并内联样式
+   * Worker 可用时使用 Worker，否则降级到主线程
+   */
+  const renderWithStyles = useCallback(async (markdown: string, theme?: Theme, codeTheme?: CodeTheme): Promise<string> => {
+    setIsRendering(true);
+    const start = performance.now();
+
+    try {
+      if (workerRef.current.available) {
+        // 使用 Worker 渲染并内联样式
+        const result: RenderWithStylesResult = await workerRef.current.renderWithStyles(markdown, theme, codeTheme);
+        setLastDuration(result.duration);
+        return result.html;
+      } else {
+        // 降级到主线程渲染
+        const rawHtml = parseMarkdown(markdown);
+        const html = inlineStyles(rawHtml, theme, codeTheme);
+        setLastDuration(performance.now() - start);
+        return html;
+      }
+    } finally {
+      setIsRendering(false);
+    }
+  }, []);
+
   return {
     render,
+    renderWithStyles,
     isWorkerAvailable,
     isRendering,
     lastDuration,

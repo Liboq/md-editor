@@ -287,6 +287,101 @@ function removeUnsafeTags(html: string): string {
 }
 
 /**
+ * 清理空元素和多余的空行
+ * 微信公众号编辑器会添加一些空的 p 标签和 br 标签
+ * juice 内联样式后，空标签会带有 style 属性，也需要清理
+ */
+function cleanupEmptyElements(html: string): string {
+  let result = html;
+  
+  // 移除空的 p 标签（包含空 span、br 等）
+  // 匹配: <p><span leaf=""><br class="ProseMirror-trailingBreak"></span></p>
+  // 也匹配带 style 属性的空 p 标签: <p style="..."></p>
+  result = result.replace(/<p[^>]*>\s*(<span[^>]*>\s*)?(<br[^>]*\/?>)?\s*(<\/span>)?\s*<\/p>/gi, '');
+  
+  // 移除只包含空白的 p 标签（包括带 style 属性的）
+  result = result.replace(/<p[^>]*>\s*<\/p>/gi, '');
+  
+  // 移除只包含 br 的 p 标签
+  result = result.replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '');
+  
+  // 移除只包含 &nbsp; 的 p 标签
+  result = result.replace(/<p[^>]*>\s*(&nbsp;|\u00A0)+\s*<\/p>/gi, '');
+  
+  // 移除连续的多个 br 标签（保留最多 2 个）
+  result = result.replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
+  
+  // 移除 ProseMirror 相关的类和属性（但保留我们添加的 leaf="" 属性）
+  result = result.replace(/\s+class="[^"]*ProseMirror[^"]*"/gi, '');
+  
+  // 移除行内的 section 标签（保留内容），微信会把 section 当作块级元素导致换行
+  // 匹配 <section>内容</section> 或 <section ...>内容</section>
+  result = result.replace(/<section[^>]*>([\s\S]*?)<\/section>/gi, '$1');
+  
+  // 移除 pseudo-before/pseudo-after 元素（微信不支持 position: absolute）
+  result = result.replace(/<span[^>]*class="pseudo-(before|after)"[^>]*>[^<]*<\/span>/gi, '');
+  
+  // 移除元素上的 position: relative 样式（伪元素移除后不再需要）
+  result = result.replace(/position:\s*relative;?\s*/gi, '');
+  
+  // 清理多余的空行（连续的换行符）
+  result = result.replace(/\n{3,}/g, '\n\n');
+  
+  return result;
+}
+
+/**
+ * 包裹裸文本，防止微信把 strong/em 后面的文本解析为 section
+ * 例如：<strong>标题</strong>：后面的文本 -> <strong>标题</strong><span style="...">：后面的文本</span>
+ * 
+ * 处理范围：li、p、td、th、blockquote 等块级元素内的裸文本
+ */
+function wrapBareText(html: string): string {
+  // 需要处理的块级元素
+  const blockElements = ['li', 'p', 'td', 'th', 'blockquote', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+  
+  // 用于包裹文本的 span 样式
+  const spanStyle = 'box-sizing: border-box; margin: 0;';
+  
+  let result = html;
+  
+  for (const tag of blockElements) {
+    // 匹配块级元素内的内容
+    const regex = new RegExp(`(<${tag}[^>]*>)([\\s\\S]*?)(<\\/${tag}>)`, 'gi');
+    
+    result = result.replace(regex, (_, tagOpen, content, tagClose) => {
+      // 在内容中，将 </strong>、</em>、</b>、</i>、</code> 后面的裸文本用 span 包裹
+      let processed = content;
+      
+      // 匹配 </strong>、</em>、</b>、</i>、</code> 后面紧跟的文本（不以 < 开头的内容）
+      processed = processed.replace(
+        /(<\/(?:strong|em|b|i|code)[^>]*>)([^<]+)/gi,
+        (_m: string, closeTag: string, text: string) => {
+          // 如果文本只有空白，不处理
+          if (!text.trim()) return `${closeTag}${text}`;
+          return `${closeTag}<span style="${spanStyle}">${text}</span>`;
+        }
+      );
+      
+      // 处理开头的裸文本（在第一个标签之前的文本）
+      // 例如：<p>文本<strong>粗体</strong></p> -> <p><span>文本</span><strong>粗体</strong></p>
+      processed = processed.replace(
+        /^([^<]+)(<(?:strong|em|b|i|code|a|span)[^>]*>)/i,
+        (m: string, text: string, openTag: string) => {
+          // 如果文本只有空白，不处理
+          if (!text.trim()) return m;
+          return `<span style="${spanStyle}">${text}</span>${openTag}`;
+        }
+      );
+      
+      return `${tagOpen}${processed}${tagClose}`;
+    });
+  }
+  
+  return result;
+}
+
+/**
  * 适配 HTML 内容以兼容微信公众号
  * 
  * @param html - 原始 HTML 内容
@@ -340,6 +435,12 @@ export function adaptForWechat(
   if (opts.convertLinksToFootnotes) {
     result = convertLinksToFootnotes(result);
   }
+  
+  // 7. 清理空元素和多余空行
+  result = cleanupEmptyElements(result);
+  
+  // 8. 包裹块级元素中的裸文本，防止微信解析为 section
+  result = wrapBareText(result);
   
   return result;
 }

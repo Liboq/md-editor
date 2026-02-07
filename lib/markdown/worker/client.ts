@@ -5,7 +5,9 @@
  * 使用 Promise 封装消息通信，调用方式就像普通函数一样。
  */
 
-import type { RenderResult, ExtractResult, LintResult } from "./procedures";
+import type { RenderResult, ExtractResult, LintResult, RenderWithStylesResult } from "./procedures";
+import type { Theme } from "@/lib/themes/types";
+import type { CodeTheme } from "@/lib/code-theme/code-themes";
 
 /**
  * 等待中的请求
@@ -146,6 +148,19 @@ export class MarkdownWorkerClient {
   async render(markdown: string): Promise<RenderResult> {
     await this.ready();
     return this.sendRequest<RenderResult>("render", { markdown });
+  }
+
+  /**
+   * 渲染 Markdown 为带内联样式的 HTML
+   * 
+   * @param markdown - Markdown 源文本
+   * @param theme - 主题配置
+   * @param codeTheme - 代码主题配置
+   * @returns 渲染结果，包含内联样式的 HTML 和耗时
+   */
+  async renderWithStyles(markdown: string, theme?: Theme, codeTheme?: CodeTheme): Promise<RenderWithStylesResult> {
+    await this.ready();
+    return this.sendRequest<RenderWithStylesResult>("renderWithStyles", { markdown, theme, codeTheme });
   }
 
   /**

@@ -45,7 +45,8 @@ import nginx from "highlight.js/lib/languages/nginx";
 import dockerfile from "highlight.js/lib/languages/dockerfile";
 import plaintext from "highlight.js/lib/languages/plaintext";
 
-import { renderMarkdown, extractText, lintMarkdown } from "./procedures";
+import { renderMarkdown, renderMarkdownWithStyles, extractText, lintMarkdown } from "./procedures";
+import { inlineStyles } from "@/lib/clipboard/juice-inliner";
 
 // 注册语言
 hljs.registerLanguage("javascript", javascript);
@@ -121,16 +122,20 @@ const langNames: Record<string, string> = {
 const renderer = new marked.Renderer();
 renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
   const displayLang = lang ? langNames[lang.toLowerCase()] || lang.toUpperCase() : null;
-  const labelStyle = "display:block;text-align:right;font-size:12px;font-weight:600;color:#1a73e8;background:rgba(26,115,232,0.08);padding:6px 12px;margin:-1em -1em 0.8em -1em;border-radius:6px 6px 0 0;font-family:system-ui,-apple-system,sans-serif;";
-  const label = displayLang ? `<span class="code-lang-label" style="${labelStyle}">${displayLang}</span>` : "";
+  const labelStyle = "display: block; text-align: right; font-size: 12px; font-weight: 700; color: #fff; background: #3b82f6; padding: 4px 12px; margin: 0; border-radius: 6px 6px 0 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: 0.5px;";
+  const langLabel = displayLang ? `<span class="code-lang-label" style="${labelStyle}">${displayLang}</span>` : "";
   
+  // 代码块样式 - 直接用 pre 作为容器
+  const preStyle = "margin: 0; padding: 0; background: #f6f8fa; border-radius: 6px; overflow: hidden;";
+  const codeStyle = "display: block; padding: 1em; overflow-x: auto; white-space: pre; font-family: Consolas, Monaco, monospace; font-size: 0.9em; line-height: 1.5;";
+
   if (lang && hljs.getLanguage(lang)) {
     try {
       const highlighted = hljs.highlight(text, { language: lang }).value;
-      return `<pre class="code-block-wrapper"><code class="hljs language-${lang}">${label}${highlighted}</code></pre>`;
+      return `<pre style="${preStyle}">${langLabel}<code class="hljs language-${lang}" style="${codeStyle}">${highlighted}</code></pre>`;
     } catch { /* 高亮失败 */ }
   }
-  return `<pre class="code-block-wrapper"><code class="hljs">${label}${escapeHtml(text)}</code></pre>`;
+  return `<pre style="${preStyle}">${langLabel}<code class="hljs" style="${codeStyle}">${escapeHtml(text)}</code></pre>`;
 };
 marked.use({ renderer });
 
@@ -176,6 +181,7 @@ self.onmessage = async (e: MessageEvent) => {
     let result: unknown;
     switch (method) {
       case "render": result = renderMarkdown(params.markdown, parseMarkdown); break;
+      case "renderWithStyles": result = renderMarkdownWithStyles(params.markdown, parseMarkdown, inlineStyles, params.theme, params.codeTheme); break;
       case "extract": result = extractText(params.markdown); break;
       case "lint": result = lintMarkdown(params.markdown); break;
       case "ping": result = { pong: true, timestamp: Date.now() }; break;
